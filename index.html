@@ -1172,6 +1172,8 @@
         function clearAllCards() {
             selectedHandCards = [];
             selectedCommunityCards = [];
+            // 重置后切换回手牌模式
+            switchMode('hand');
             updateCardSelection();
             updateProgress();
         }
