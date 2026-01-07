@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>德州扑克胜率计算测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .test-section {
+            background-color: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            background-color: #f0f0f0;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .input-group {
+            margin: 10px 0;
+        }
+        label {
+            display: inline-block;
+            width: 120px;
+        }
+        input, textarea {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: calc(100% - 130px);
+        }
+    </style>
+</head>
+<body>
+    <h1>德州扑克胜率计算测试</h1>
+    
+    <!-- 手动测试区域 -->
+    <div class="test-section">
+        <h2>手动测试</h2>
+        <div class="input-group">
+            <label for="myCards">我的手牌：</label>
+            <input type="text" id="myCards" placeholder='["As", "Kd"]' value='["As", "Kd"]'>
+        </div>
+        <div class="input-group">
+            <label for="communityCards">公共牌：</label>
+            <input type="text" id="communityCards" placeholder='["Ah", "Kh", "Qh"]' value='[]'>
+        </div>
+        <div class="input-group">
+            <label for="opponentCount">对手人数：</label>
+            <input type="number" id="opponentCount" min="1" max="8" value="1">
+        </div>
+        <div class="input-group">
+            <label for="simulations">模拟次数：</label>
+            <input type="number" id="simulations" min="100" max="100000" value="5000">
+        </div>
+        <button onclick="runManualTest()">计算胜率</button>
+        <div id="manualTestResult" class="test-result"></div>
+    </div>
+    
+    <!-- 预设测试用例 -->
+    <div class="test-section">
+        <h2>预设测试用例</h2>
+        <button onclick="runPresetTest1()">测试1：AK vs 1个对手，无公共牌</button>
+        <button onclick="runPresetTest2()">测试2：AA vs 2个对手，翻牌有A</button>
+        <button onclick="runPresetTest3()">测试3：同花听牌 vs 3个对手</button>
+        <div id="presetTestResult" class="test-result"></div>
+    </div>
+    
+    <!-- 计算结果展示 -->
+    <div class="test-section">
+        <h2>计算结果</h2>
+        <div id="allResults"></div>
+    </div>
+    
+    <!-- 引入胜率计算逻辑 -->
+    <script type="module">
+        // 牌型等级定义（从低到高）
+        const HAND_RANKS = {
+            HIGH_CARD: 0,         // 高牌
+            ONE_PAIR: 1,          // 一对
+            TWO_PAIR: 2,          // 两对
+            THREE_OF_A_KIND: 3,   // 三条
+            STRAIGHT: 4,          // 顺子
+            FLUSH: 5,             // 同花
+            FULL_HOUSE: 6,        // 葫芦
+            FOUR_OF_A_KIND: 7,    // 四条
+            STRAIGHT_FLUSH: 8,    // 同花顺
+            ROYAL_FLUSH: 9        // 皇家同花顺
+        };
+
+        // 花色映射
+        const SUIT_MAP = {
+            's': 0,  // 黑桃
+            'h': 1,  // 红桃
+            'd': 2,  // 方块
+            'c': 3   // 梅花
+        };
+
+        // 点数映射
+        const RANK_MAP = {
+            '2': 0,
+            '3': 1,
+            '4': 2,
+            '5': 3,
+            '6': 4,
+            '7': 5,
+            '8': 6,
+            '9': 7,
+            'T': 8,  // 10
+            'J': 9,  // J
+            'Q': 10, // Q
+            'K': 11, // K
+            'A': 12  // A
+        };
+
+        /**
+         * 将卡牌字符串转换为数字编码
+         * 例如：As -> 0, Kd -> 39
+         */
+        function parseCard(cardStr) {
+            const rankStr = cardStr[0];
+            const suitStr = cardStr[1];
+            
+            const rank = RANK_MAP[rankStr];
+            const suit = SUIT_MAP[suitStr];
+            
+            return suit * 13 + rank;
+        }
+
+        /**
+         * 解析多张卡牌
+         */
+        function parseCards(cardStrs) {
+            return cardStrs.map(parseCard);
+        }
+
+        /**
+         * Fisher-Yates 洗牌算法
+         */
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        /**
+         * 从卡牌编码中提取点数
+         */
+        function getRank(card) {
+            return card % 13;
+        }
+
+        /**
+         * 从卡牌编码中提取花色
+         */
+        function getSuit(card) {
+            return Math.floor(card / 13);
+        }
+
+        /**
+         * 统计卡牌点数出现次数
+         */
+        function countRanks(cards) {
+            const rankCounts = new Map();
+            for (const card of cards) {
+                const rank = getRank(card);
+                rankCounts.set(rank, (rankCounts.get(rank) || 0) + 1);
+            }
+            return rankCounts;
+        }
+
+        /**
+         * 统计卡牌花色出现次数
+         */
+        function countSuits(cards) {
+            const suitCounts = new Map();
+            for (const card of cards) {
+                const suit = getSuit(card);
+                suitCounts.set(suit, (suitCounts.get(suit) || 0) + 1);
+            }
+            return suitCounts;
+        }
+
+        /**
+         * 检查是否为顺子
+         */
+        function isStraight(ranks) {
+            const uniqueRanks = Array.from(new Set(ranks)).sort((a, b) => a - b);
+            
+            // 特殊情况：A-2-3-4-5
+            if (uniqueRanks.includes(12) && 
+                uniqueRanks.includes(0) && 
+                uniqueRanks.includes(1) && 
+                uniqueRanks.includes(2) && 
+                uniqueRanks.includes(3)) {
+                return true;
+            }
+            
+            // 常规顺子检查
+            for (let i = 0; i <= uniqueRanks.length - 5; i++) {
+                let isConsecutive = true;
+                for (let j = 1; j < 5; j++) {
+                    if (uniqueRanks[i + j] !== uniqueRanks[i] + j) {
+                        isConsecutive = false;
+                        break;
+                    }
+                }
+                if (isConsecutive) {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
+        /**
+         * 检查是否为同花
+         */
+        function isFlush(cards) {
+            const suitCounts = countSuits(cards);
+            return Array.from(suitCounts.values()).some(count => count >= 5);
+        }
+
+        /**
+         * 评估手牌，返回牌型等级和关键牌信息
+         */
+        function evaluateHand(cards) {
+            const ranks = cards.map(getRank);
+            const suits = cards.map(getSuit);
+            
+            const rankCounts = countRanks(cards);
+            const suitCounts = countSuits(cards);
+            
+            const flush = isFlush(cards);
+            const straight = isStraight(ranks);
+            
+            const sortedCounts = Array.from(rankCounts.values()).sort((a, b) => b - a);
+            
+            let handRank = HAND_RANKS.HIGH_CARD;
+            
+            if (flush && straight) {
+                // 同花顺或皇家同花顺
+                const hasTen = ranks.includes(8);
+                const hasJack = ranks.includes(9);
+                const hasQueen = ranks.includes(10);
+                const hasKing = ranks.includes(11);
+                const hasAce = ranks.includes(12);
+                
+                if (hasTen && hasJack && hasQueen && hasKing && hasAce) {
+                    handRank = HAND_RANKS.ROYAL_FLUSH;
+                } else {
+                    handRank = HAND_RANKS.STRAIGHT_FLUSH;
+                }
+            } else if (sortedCounts[0] === 4) {
+                handRank = HAND_RANKS.FOUR_OF_A_KIND;
+            } else if (sortedCounts[0] === 3 && sortedCounts[1] === 2) {
+                handRank = HAND_RANKS.FULL_HOUSE;
+            } else if (flush) {
+                handRank = HAND_RANKS.FLUSH;
+            } else if (straight) {
+                handRank = HAND_RANKS.STRAIGHT;
+            } else if (sortedCounts[0] === 3) {
+                handRank = HAND_RANKS.THREE_OF_A_KIND;
+            } else if (sortedCounts[0] === 2 && sortedCounts[1] === 2) {
+                handRank = HAND_RANKS.TWO_PAIR;
+            } else if (sortedCounts[0] === 2) {
+                handRank = HAND_RANKS.ONE_PAIR;
+            }
+            
+            // 获取关键牌
+            const keyRanks = Array.from(rankCounts.entries())
+                .sort((a, b) => {
+                    if (b[1] !== a[1]) {
+                        return b[1] - a[1];
+                    }
+                    return b[0] - a[0];
+                })
+                .map(entry => entry[0]);
+            
+            return {
+                rank: handRank,
+                keyRanks: keyRanks
+            };
+        }
+
+        /**
+         * 比较两手牌的大小
+         */
+        function compareHands(hand1, hand2) {
+            if (hand1.rank > hand2.rank) {
+                return 1;
+            } else if (hand1.rank < hand2.rank) {
+                return -1;
+            }
+            
+            for (let i = 0; i < hand1.keyRanks.length; i++) {
+                if (hand1.keyRanks[i] > hand2.keyRanks[i]) {
+                    return 1;
+                } else if (hand1.keyRanks[i] < hand2.keyRanks[i]) {
+                    return -1;
+                }
+            }
+            
+            return 0;
+        }
+
+        /**
+         * 计算德州扑克胜率（蒙特卡洛模拟）
+         */
+        function calculatePokerOdds(myCards, communityCards, opponentCount, simulations = 5000) {
+            // 1. 解析卡牌为数字编码
+            const myCardsEncoded = parseCards(myCards);
+            const communityCardsEncoded = parseCards(communityCards);
+            
+            // 2. 验证输入
+            if (myCardsEncoded.length !== 2) {
+                throw new Error("我的手牌必须是2张");
+            }
+            if (communityCardsEncoded.length < 0 || communityCardsEncoded.length > 5) {
+                throw new Error("公共牌数量必须在0-5之间");
+            }
+            if (opponentCount < 1 || opponentCount > 8) {
+                throw new Error("对手人数必须在1-8之间");
+            }
+            
+            // 3. 创建完整牌组并移除已知牌
+            const fullDeck = Array.from({ length: 52 }, (_, i) => i);
+            const knownCards = [...myCardsEncoded, ...communityCardsEncoded];
+            const remainingDeck = fullDeck.filter(card => !knownCards.includes(card));
+            
+            // 4. 统计变量
+            let wins = 0;
+            let ties = 0;
+            
+            // 5. 蒙特卡洛模拟主循环
+            for (let i = 0; i < simulations; i++) {
+                // 洗牌
+                const shuffledDeck = shuffleArray(remainingDeck);
+                
+                // 分配对手手牌
+                const opponentsCards = [];
+                let cardIndex = 0;
+                for (let j = 0; j < opponentCount; j++) {
+                    opponentsCards.push([
+                        shuffledDeck[cardIndex++],
+                        shuffledDeck[cardIndex++]
+                    ]);
+                }
+                
+                // 生成剩余公共牌
+                const remainingCommunityCardsNeeded = 5 - communityCardsEncoded.length;
+                const simulatedCommunityCards = shuffledDeck.slice(
+                    cardIndex,
+                    cardIndex + remainingCommunityCardsNeeded
+                );
+                const finalCommunityCards = [...communityCardsEncoded, ...simulatedCommunityCards];
+                
+                // 计算我的最终牌型
+                const myFinalHand = [...myCardsEncoded, ...finalCommunityCards];
+                const myBestHand = evaluateHand(myFinalHand);
+                
+                let isWinner = true;
+                let hasTie = false;
+                
+                // 比较所有对手的牌型
+                for (const opponentHoleCards of opponentsCards) {
+                    const opponentFinalHand = [...opponentHoleCards, ...finalCommunityCards];
+                    const opponentBestHand = evaluateHand(opponentFinalHand);
+                    
+                    const comparison = compareHands(myBestHand, opponentBestHand);
+                    if (comparison < 0) {
+                        isWinner = false;
+                        break;
+                    } else if (comparison === 0) {
+                        hasTie = true;
+                    }
+                }
+                
+                // 更新统计
+                if (isWinner) {
+                    if (hasTie) {
+                        ties++;
+                    } else {
+                        wins++;
+                    }
+                }
+            }
+            
+            // 6. 计算概率
+            const winPercentage = (wins / simulations) * 100;
+            const tiePercentage = (ties / simulations) * 100;
+            const losePercentage = 100 - winPercentage - tiePercentage;
+            
+            // 7. 返回结果
+            return {
+                win: parseFloat(winPercentage.toFixed(2)),
+                tie: parseFloat(tiePercentage.toFixed(2)),
+                lose: parseFloat(losePercentage.toFixed(2)),
+                simulations
+            };
+        }
+        
+        // 将函数暴露给全局作用域，以便HTML中的按钮调用
+        window.calculatePokerOdds = calculatePokerOdds;
+        
+        // 手动测试函数
+        window.runManualTest = function() {
+            const myCards = JSON.parse(document.getElementById('myCards').value);
+            const communityCards = JSON.parse(document.getElementById('communityCards').value);
+            const opponentCount = parseInt(document.getElementById('opponentCount').value);
+            const simulations = parseInt(document.getElementById('simulations').value);
+            
+            try {
+                const startTime = performance.now();
+                const result = calculatePokerOdds(myCards, communityCards, opponentCount, simulations);
+                const endTime = performance.now();
+                
+                const resultHtml = `
+                    <h3>计算结果：</h3>
+                    <p>我的手牌：${JSON.stringify(myCards)}</p>
+                    <p>公共牌：${JSON.stringify(communityCards)}</p>
+                    <p>对手人数：${opponentCount}</p>
+                    <p>模拟次数：${simulations}</p>
+                    <p>计算时间：${(endTime - startTime).toFixed(2)}ms</p>
+                    <p><strong>胜率：${result.win}%</strong></p>
+                    <p>平局概率：${result.tie}%</p>
+                    <p>输的概率：${result.lose}%</p>
+                `;
+                
+                document.getElementById('manualTestResult').innerHTML = resultHtml;
+                
+                // 添加到所有结果
+                const allResultsDiv = document.getElementById('allResults');
+                allResultsDiv.innerHTML += resultHtml + '<hr>';
+                
+            } catch (error) {
+                document.getElementById('manualTestResult').innerHTML = `<p style="color: red;">错误：${error.message}</p>`;
+            }
+        };
+        
+        // 预设测试用例
+        window.runPresetTest1 = function() {
+            const myCards = ["As", "Kd"];
+            const communityCards = [];
+            const opponentCount = 1;
+            
+            document.getElementById('myCards').value = JSON.stringify(myCards);
+            document.getElementById('communityCards').value = JSON.stringify(communityCards);
+            document.getElementById('opponentCount').value = opponentCount;
+            
+            runManualTest();
+        };
+        
+        window.runPresetTest2 = function() {
+            const myCards = ["As", "Ah"];
+            const communityCards = ["Ac", "2d", "3s"];
+            const opponentCount = 2;
+            
+            document.getElementById('myCards').value = JSON.stringify(myCards);
+            document.getElementById('communityCards').value = JSON.stringify(communityCards);
+            document.getElementById('opponentCount').value = opponentCount;
+            
+            runManualTest();
+        };
+        
+        window.runPresetTest3 = function() {
+            const myCards = ["Ah", "Kh"];
+            const communityCards = ["Qh", "Jh", "2d"];
+            const opponentCount = 3;
+            
+            document.getElementById('myCards').value = JSON.stringify(myCards);
+            document.getElementById('communityCards').value = JSON.stringify(communityCards);
+            document.getElementById('opponentCount').value = opponentCount;
+            
+            runManualTest();
+        };
+    </script>
+</body>
+</html>

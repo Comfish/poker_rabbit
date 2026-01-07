@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>德州扑克胜率计算器 - 优化版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        h2 {
+            color: #34495e;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        /* 选牌模式切换 */
+        .selection-mode {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .mode-btn {
+            padding: 10px 20px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        
+        .mode-btn.active {
+            border-color: #3498db;
+            background-color: #e8f4f8;
+            color: #3498db;
+        }
+        
+        /* 选牌进度 */
+        .selection-progress {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+        }
+        
+        .progress-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .progress-label {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .progress-bar-container {
+            width: 200px;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 5px;
+        }
+        
+        .progress-bar.hand {
+            background-color: #3498db;
+        }
+        
+        .progress-bar.community {
+            background-color: #27ae60;
+        }
+        
+        .progress-text {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        /* 快速操作按钮 */
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .quick-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .quick-btn.primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .quick-btn.primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .quick-btn.secondary {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .quick-btn.secondary:hover {
+            background-color: #c0392b;
+        }
+        
+        /* 卡牌选择区域 */
+        .card-selection {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        /* 合并的卡牌网格 */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+            gap: 10px;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        
+        /* 增强型卡牌样式 */
+        .card {
+            width: 65px;
+            height: 90px;
+            background-color: white;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            position: relative;
+        }
+        
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        /* 手牌选择状态 */
+        .card.selected.hand {
+            border-color: #3498db;
+            background-color: #e8f4f8;
+            box-shadow: 0 0 0 2px #3498db;
+        }
+        
+        /* 公共牌选择状态 */
+        .card.selected.community {
+            border-color: #27ae60;
+            background-color: #e8f8e8;
+            box-shadow: 0 0 0 2px #27ae60;
+        }
+        
+        /* 禁用状态（已选其他类型） */
+        .card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: #bdc3c7;
+        }
+        
+        /* 选择标记 */
+        .card .selection-mark {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .card.selected.hand .selection-mark {
+            background-color: #3498db;
+        }
+        
+        .card.selected.community .selection-mark {
+            background-color: #27ae60;
+        }
+        
+        .card .rank {
+            font-weight: bold;
+        }
+        
+        .card .suit {
+            font-size: 20px;
+        }
+        
+        /* 花色样式 */
+        .suit.s {
+            color: black;
+        }
+        
+        .suit.h {
+            color: red;
+        }
+        
+        .suit.d {
+            color: red;
+        }
+        
+        .suit.c {
+            color: black;
+        }
+        
+        /* 对手人数选择 */
+        .opponent-selector {
+            margin: 20px 0;
+        }
+        
+        .opponent-selector label {
+            display: inline-block;
+            width: 120px;
+            font-weight: bold;
+        }
+        
+        .opponent-selector input {
+            width: 100px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        /* 按钮样式 */
+        .calculate-btn {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.2s ease;
+        }
+        
+        .calculate-btn:hover {
+            background-color: #229954;
+        }
+        
+        .calculate-btn:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        
+        /* 结果区域 */
+        .results {
+            margin-top: 20px;
+        }
+        
+        .result-item {
+            margin: 10px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+        }
+        
+        .result-label {
+            font-weight: bold;
+            margin-right: 10px;
+            color: #34495e;
+        }
+        
+        .win-rate {
+            color: #27ae60;
+            font-size: 18px;
+        }
+        
+        .tie-rate {
+            color: #f39c12;
+        }
+        
+        .lose-rate {
+            color: #e74c3c;
+        }
+        
+        /* 加载状态 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 信息提示 */
+        .info {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            border-left: 4px solid #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>德州扑克胜率计算器</h1>
+        
+        <!-- 输入区域 -->
+        <div class="section">
+            <h2>卡牌选择</h2>
+            <div class="info">
+                <strong>操作说明：</strong>
+                1. 点击卡牌网格选择卡牌<br>
+                2. 使用模式切换选择手牌或公共牌<br>
+                3. 手牌最多选择2张，公共牌最多选择5张
+            </div>
+            
+            <!-- 选牌模式切换 -->
+            <div class="selection-mode">
+                <button class="mode-btn active" id="handModeBtn" onclick="switchMode('hand')">
+                    选择手牌 (已选 <span id="handCount">0</span>/2)
+                </button>
+                <button class="mode-btn" id="communityModeBtn" onclick="switchMode('community')">
+                    选择公共牌 (已选 <span id="communityCount">0</span>/5)
+                </button>
+            </div>
+            
+            <!-- 选牌进度 -->
+            <div class="selection-progress">
+                <div class="progress-item">
+                    <div class="progress-label">手牌选择进度</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar hand" id="handProgressBar" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text" id="handProgressText">已选 0/2 张</div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-label">公共牌选择进度</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar community" id="communityProgressBar" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text" id="communityProgressText">已选 0/5 张</div>
+                </div>
+            </div>
+            
+            <!-- 快速操作按钮 -->
+            <div class="quick-actions">
+                <button class="quick-btn primary" onclick="clearHandCards()">清除手牌</button>
+                <button class="quick-btn primary" onclick="clearCommunityCards()">清除公共牌</button>
+                <button class="quick-btn secondary" onclick="clearAllCards()">清除所有</button>
+            </div>
+            
+            <!-- 合并的卡牌网格 -->
+            <div class="card-grid" id="cardGrid"></div>
+        </div>
+        
+        <div class="section">
+            <h2>计算设置</h2>
+            <div class="opponent-selector">
+                <label for="opponentCount">对手人数（1-8）：</label>
+                <input type="number" id="opponentCount" min="1" max="8" value="1">
+            </div>
+            
+            <button class="calculate-btn" id="calculateBtn" onclick="calculateOdds()">
+                计算胜率
+                <span id="loading" class="loading" style="display: none;"></span>
+            </button>
+        </div>
+        
+        <!-- 结果区域 -->
+        <div class="section">
+            <h2>计算结果</h2>
+            <div class="results" id="results"></div>
+        </div>
+    </div>
+    
+    <script>
+        // 牌型等级定义
+        const HAND_RANKS = {
+            HIGH_CARD: 0,
+            ONE_PAIR: 1,
+            TWO_PAIR: 2,
+            THREE_OF_A_KIND: 3,
+            STRAIGHT: 4,
+            FLUSH: 5,
+            FULL_HOUSE: 6,
+            FOUR_OF_A_KIND: 7,
+            STRAIGHT_FLUSH: 8,
+            ROYAL_FLUSH: 9
+        };
+
+        // 花色映射
+        const SUIT_MAP = {
+            's': 0,
+            'h': 1,
+            'd': 2,
+            'c': 3
+        };
+
+        // 点数映射
+        const RANK_MAP = {
+            '2': 0,
+            '3': 1,
+            '4': 2,
+            '5': 3,
+            '6': 4,
+            '7': 5,
+            '8': 6,
+            '9': 7,
+            'T': 8,
+            'J': 9,
+            'Q': 10,
+            'K': 11,
+            'A': 12
+        };
+
+        // 生成所有卡牌
+        const SUITS = ['s', 'h', 'd', 'c'];
+        const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'];
+        const ALL_CARDS = [];
+        
+        for (const suit of SUITS) {
+            for (const rank of RANKS) {
+                ALL_CARDS.push(`${rank}${suit}`);
+            }
+        }
+        
+        // 应用状态
+        let selectedHandCards = [];
+        let selectedCommunityCards = [];
+        let currentMode = 'hand'; // 'hand' 或 'community'
+        
+        // 初始化卡牌网格
+        function initCardGrid() {
+            const cardGrid = document.getElementById('cardGrid');
+            cardGrid.innerHTML = '';
+            
+            // 创建卡牌元素
+            for (const cardStr of ALL_CARDS) {
+                const card = createCardElement(cardStr);
+                card.onclick = () => toggleCard(cardStr);
+                cardGrid.appendChild(card);
+            }
+        }
+        
+        // 创建卡牌元素
+        function createCardElement(cardStr) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.dataset.card = cardStr;
+            
+            const rank = cardStr[0];
+            const suit = cardStr[1];
+            
+            card.innerHTML = `
+                <div class="rank">${rank}</div>
+                <div class="suit ${suit}">${getSuitSymbol(suit)}</div>
+            `;
+            
+            return card;
+        }
+        
+        // 获取花色符号
+        function getSuitSymbol(suit) {
+            const symbols = {
+                's': '♠',
+                'h': '♥',
+                'd': '♦',
+                'c': '♣'
+            };
+            return symbols[suit] || suit;
+        }
+        
+        // 切换选牌模式
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // 更新模式按钮状态
+            document.getElementById('handModeBtn').classList.toggle('active', mode === 'hand');
+            document.getElementById('communityModeBtn').classList.toggle('active', mode === 'community');
+            
+            // 更新卡牌状态
+            updateCardSelection();
+        }
+        
+        // 切换卡牌选择
+        function toggleCard(cardStr) {
+            // 检查卡牌是否已被选择
+            const isSelectedInHand = selectedHandCards.includes(cardStr);
+            const isSelectedInCommunity = selectedCommunityCards.includes(cardStr);
+            
+            if (isSelectedInHand || isSelectedInCommunity) {
+                // 取消选择
+                if (isSelectedInHand) {
+                    selectedHandCards = selectedHandCards.filter(card => card !== cardStr);
+                } else {
+                    selectedCommunityCards = selectedCommunityCards.filter(card => card !== cardStr);
+                }
+            } else {
+                // 选择新卡牌
+                if (currentMode === 'hand') {
+                    // 手牌最多2张
+                    if (selectedHandCards.length < 2) {
+                        selectedHandCards.push(cardStr);
+                    }
+                } else {
+                    // 公共牌最多5张
+                    if (selectedCommunityCards.length < 5) {
+                        selectedCommunityCards.push(cardStr);
+                    }
+                }
+            }
+            
+            // 更新界面
+            updateCardSelection();
+            updateProgress();
+        }
+        
+        // 更新卡牌选择状态
+        function updateCardSelection() {
+            const cards = document.querySelectorAll('.card');
+            
+            cards.forEach(card => {
+                const cardStr = card.dataset.card;
+                const isSelectedInHand = selectedHandCards.includes(cardStr);
+                const isSelectedInCommunity = selectedCommunityCards.includes(cardStr);
+                
+                // 重置状态
+                card.className = 'card';
+                
+                // 移除旧的选择标记
+                const oldMark = card.querySelector('.selection-mark');
+                if (oldMark) {
+                    oldMark.remove();
+                }
+                
+                if (isSelectedInHand) {
+                    // 手牌选择状态
+                    card.classList.add('selected', 'hand');
+                    const mark = document.createElement('div');
+                    mark.className = 'selection-mark';
+                    mark.textContent = selectedHandCards.indexOf(cardStr) + 1;
+                    card.appendChild(mark);
+                } else if (isSelectedInCommunity) {
+                    // 公共牌选择状态
+                    card.classList.add('selected', 'community');
+                    const mark = document.createElement('div');
+                    mark.className = 'selection-mark';
+                    const index = selectedCommunityCards.indexOf(cardStr);
+                    // 翻牌(F1-F3)、转牌(T)、河牌(R)
+                    const labels = ['F1', 'F2', 'F3', 'T', 'R'];
+                    mark.textContent = labels[index] || (index + 1);
+                    card.appendChild(mark);
+                } else if (selectedHandCards.includes(cardStr) || selectedCommunityCards.includes(cardStr)) {
+                    // 已在其他类别中选择，禁用
+                    card.classList.add('disabled');
+                }
+            });
+        }
+        
+        // 更新选牌进度
+        function updateProgress() {
+            // 更新手牌进度
+            const handProgress = (selectedHandCards.length / 2) * 100;
+            document.getElementById('handProgressBar').style.width = `${handProgress}%`;
+            document.getElementById('handProgressText').textContent = `已选 ${selectedHandCards.length}/2 张`;
+            document.getElementById('handCount').textContent = selectedHandCards.length;
+            
+            // 更新公共牌进度
+            const communityProgress = (selectedCommunityCards.length / 5) * 100;
+            document.getElementById('communityProgressBar').style.width = `${communityProgress}%`;
+            document.getElementById('communityProgressText').textContent = `已选 ${selectedCommunityCards.length}/5 张`;
+            document.getElementById('communityCount').textContent = selectedCommunityCards.length;
+        }
+        
+        // 清除手牌
+        function clearHandCards() {
+            selectedHandCards = [];
+            updateCardSelection();
+            updateProgress();
+        }
+        
+        // 清除公共牌
+        function clearCommunityCards() {
+            selectedCommunityCards = [];
+            updateCardSelection();
+            updateProgress();
+        }
+        
+        // 清除所有卡牌
+        function clearAllCards() {
+            selectedHandCards = [];
+            selectedCommunityCards = [];
+            updateCardSelection();
+            updateProgress();
+        }
+        
+        // 将卡牌字符串转换为数字编码
+        function parseCard(cardStr) {
+            const rankStr = cardStr[0];
+            const suitStr = cardStr[1];
+            
+            const rank = RANK_MAP[rankStr];
+            const suit = SUIT_MAP[suitStr];
+            
+            return suit * 13 + rank;
+        }
+        
+        // 解析多张卡牌
+        function parseCards(cardStrs) {
+            return cardStrs.map(parseCard);
+        }
+        
+        // Fisher-Yates 洗牌算法
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+        
+        // 从卡牌编码中提取点数
+        function getRank(card) {
+            return card % 13;
+        }
+        
+        // 从卡牌编码中提取花色
+        function getSuit(card) {
+            return Math.floor(card / 13);
+        }
+        
+        // 统计卡牌点数出现次数
+        function countRanks(cards) {
+            const rankCounts = new Map();
+            for (const card of cards) {
+                const rank = getRank(card);
+                rankCounts.set(rank, (rankCounts.get(rank) || 0) + 1);
+            }
+            return rankCounts;
+        }
+        
+        // 统计卡牌花色出现次数
+        function countSuits(cards) {
+            const suitCounts = new Map();
+            for (const card of cards) {
+                const suit = getSuit(card);
+                suitCounts.set(suit, (suitCounts.get(suit) || 0) + 1);
+            }
+            return suitCounts;
+        }
+        
+        // 检查是否为顺子
+        function isStraight(ranks) {
+            const uniqueRanks = Array.from(new Set(ranks)).sort((a, b) => a - b);
+            
+            if (uniqueRanks.includes(12) && 
+                uniqueRanks.includes(0) && 
+                uniqueRanks.includes(1) && 
+                uniqueRanks.includes(2) && 
+                uniqueRanks.includes(3)) {
+                return true;
+            }
+            
+            for (let i = 0; i <= uniqueRanks.length - 5; i++) {
+                let isConsecutive = true;
+                for (let j = 1; j < 5; j++) {
+                    if (uniqueRanks[i + j] !== uniqueRanks[i] + j) {
+                        isConsecutive = false;
+                        break;
+                    }
+                }
+                if (isConsecutive) {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+        
+        // 检查是否为同花
+        function isFlush(cards) {
+            const suitCounts = countSuits(cards);
+            return Array.from(suitCounts.values()).some(count => count >= 5);
+        }
+        
+        // 评估手牌
+        function evaluateHand(cards) {
+            const ranks = cards.map(getRank);
+            const suits = cards.map(getSuit);
+            
+            const rankCounts = countRanks(cards);
+            const suitCounts = countSuits(cards);
+            
+            const flush = isFlush(cards);
+            const straight = isStraight(ranks);
+            
+            const sortedCounts = Array.from(rankCounts.values()).sort((a, b) => b - a);
+            
+            let handRank = HAND_RANKS.HIGH_CARD;
+            
+            if (flush && straight) {
+                const hasTen = ranks.includes(8);
+                const hasJack = ranks.includes(9);
+                const hasQueen = ranks.includes(10);
+                const hasKing = ranks.includes(11);
+                const hasAce = ranks.includes(12);
+                
+                if (hasTen && hasJack && hasQueen && hasKing && hasAce) {
+                    handRank = HAND_RANKS.ROYAL_FLUSH;
+                } else {
+                    handRank = HAND_RANKS.STRAIGHT_FLUSH;
+                }
+            } else if (sortedCounts[0] === 4) {
+                handRank = HAND_RANKS.FOUR_OF_A_KIND;
+            } else if (sortedCounts[0] === 3 && sortedCounts[1] === 2) {
+                handRank = HAND_RANKS.FULL_HOUSE;
+            } else if (flush) {
+                handRank = HAND_RANKS.FLUSH;
+            } else if (straight) {
+                handRank = HAND_RANKS.STRAIGHT;
+            } else if (sortedCounts[0] === 3) {
+                handRank = HAND_RANKS.THREE_OF_A_KIND;
+            } else if (sortedCounts[0] === 2 && sortedCounts[1] === 2) {
+                handRank = HAND_RANKS.TWO_PAIR;
+            } else if (sortedCounts[0] === 2) {
+                handRank = HAND_RANKS.ONE_PAIR;
+            }
+            
+            const keyRanks = Array.from(rankCounts.entries())
+                .sort((a, b) => {
+                    if (b[1] !== a[1]) {
+                        return b[1] - a[1];
+                    }
+                    return b[0] - a[0];
+                })
+                .map(entry => entry[0]);
+            
+            return {
+                rank: handRank,
+                keyRanks: keyRanks
+            };
+        }
+        
+        // 比较两手牌的大小
+        function compareHands(hand1, hand2) {
+            if (hand1.rank > hand2.rank) {
+                return 1;
+            } else if (hand1.rank < hand2.rank) {
+                return -1;
+            }
+            
+            for (let i = 0; i < hand1.keyRanks.length; i++) {
+                if (hand1.keyRanks[i] > hand2.keyRanks[i]) {
+                    return 1;
+                } else if (hand1.keyRanks[i] < hand2.keyRanks[i]) {
+                    return -1;
+                }
+            }
+            
+            return 0;
+        }
+        
+        // 计算德州扑克胜率
+        function calculatePokerOdds(myCards, communityCards, opponentCount, simulations = 5000) {
+            const myCardsEncoded = parseCards(myCards);
+            const communityCardsEncoded = parseCards(communityCards);
+            
+            if (myCardsEncoded.length !== 2) {
+                throw new Error("我的手牌必须是2张");
+            }
+            if (communityCardsEncoded.length < 0 || communityCardsEncoded.length > 5) {
+                throw new Error("公共牌数量必须在0-5之间");
+            }
+            if (opponentCount < 1 || opponentCount > 8) {
+                throw new Error("对手人数必须在1-8之间");
+            }
+            
+            const fullDeck = Array.from({ length: 52 }, (_, i) => i);
+            const knownCards = [...myCardsEncoded, ...communityCardsEncoded];
+            const remainingDeck = fullDeck.filter(card => !knownCards.includes(card));
+            
+            let wins = 0;
+            let ties = 0;
+            
+            for (let i = 0; i < simulations; i++) {
+                const shuffledDeck = shuffleArray(remainingDeck);
+                
+                const opponentsCards = [];
+                let cardIndex = 0;
+                for (let j = 0; j < opponentCount; j++) {
+                    opponentsCards.push([
+                        shuffledDeck[cardIndex++],
+                        shuffledDeck[cardIndex++]
+                    ]);
+                }
+                
+                const remainingCommunityCardsNeeded = 5 - communityCardsEncoded.length;
+                const simulatedCommunityCards = shuffledDeck.slice(
+                    cardIndex,
+                    cardIndex + remainingCommunityCardsNeeded
+                );
+                const finalCommunityCards = [...communityCardsEncoded, ...simulatedCommunityCards];
+                
+                const myFinalHand = [...myCardsEncoded, ...finalCommunityCards];
+                const myBestHand = evaluateHand(myFinalHand);
+                
+                let isWinner = true;
+                let hasTie = false;
+                
+                for (const opponentHoleCards of opponentsCards) {
+                    const opponentFinalHand = [...opponentHoleCards, ...finalCommunityCards];
+                    const opponentBestHand = evaluateHand(opponentFinalHand);
+                    
+                    const comparison = compareHands(myBestHand, opponentBestHand);
+                    if (comparison < 0) {
+                        isWinner = false;
+                        break;
+                    } else if (comparison === 0) {
+                        hasTie = true;
+                    }
+                }
+                
+                if (isWinner) {
+                    if (hasTie) {
+                        ties++;
+                    } else {
+                        wins++;
+                    }
+                }
+            }
+            
+            const winPercentage = (wins / simulations) * 100;
+            const tiePercentage = (ties / simulations) * 100;
+            const losePercentage = 100 - winPercentage - tiePercentage;
+            
+            return {
+                win: parseFloat(winPercentage.toFixed(2)),
+                tie: parseFloat(tiePercentage.toFixed(2)),
+                lose: parseFloat(losePercentage.toFixed(2)),
+                simulations
+            };
+        }
+        
+        // 计算胜率主函数
+        async function calculateOdds() {
+            // 验证输入
+            if (selectedHandCards.length !== 2) {
+                alert("请选择2张手牌");
+                return;
+            }
+            
+            const opponentCount = parseInt(document.getElementById('opponentCount').value);
+            if (opponentCount < 1 || opponentCount > 8) {
+                alert("对手人数必须在1-8之间");
+                return;
+            }
+            
+            // 显示加载状态
+            const calculateBtn = document.getElementById('calculateBtn');
+            const loading = document.getElementById('loading');
+            calculateBtn.disabled = true;
+            loading.style.display = 'inline-block';
+            
+            // 清空之前的结果
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+            
+            try {
+                // 计算胜率
+                const result = calculatePokerOdds(
+                    selectedHandCards,
+                    selectedCommunityCards,
+                    opponentCount
+                );
+                
+                // 展示结果
+                displayResults(result);
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="result-item" style="color: red;">计算错误：${error.message}</div>`;
+            } finally {
+                // 隐藏加载状态
+                calculateBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+        
+        // 展示结果
+        function displayResults(result) {
+            const resultsDiv = document.getElementById('results');
+            
+            resultsDiv.innerHTML = `
+                <div class="result-item">
+                    <span class="result-label">胜率：</span>
+                    <span class="win-rate">${result.win}%</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">平局概率：</span>
+                    <span class="tie-rate">${result.tie}%</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">输的概率：</span>
+                    <span class="lose-rate">${result.lose}%</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">模拟次数：</span>
+                    ${result.simulations}
+                </div>
+            `;
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            initCardGrid();
+            updateProgress();
+        });
+    </script>
+</body>
+</html>
