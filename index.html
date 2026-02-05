@@ -1024,7 +1024,7 @@
     <!-- 主内容区域 -->
     <div class="container" id="mainContent">
         <!-- 胜率计算器页面 -->
-        <div class="function-page active" id="calculatorPage">
+        <div class="function-page" id="calculatorPage">
             <h1>德州扑克胜率计算器</h1>
             
             <!-- 输入区域 -->
@@ -1061,7 +1061,7 @@
         </div>
         
         <!-- 德州结算器页面 -->
-        <div class="function-page" id="settlementPage">
+        <div class="function-page active" id="settlementPage">
             <h1>德州结算器</h1>
             
             <!-- 游戏配置区域 -->
@@ -2590,6 +2590,23 @@
         
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', () => {
+            // 初始化结算器（默认页面）
+            initSettlement();
+            // 隐藏底部操作栏
+            document.querySelector('.bottom-action-bar').style.display = 'none';
+            // 初始化菜单项激活状态
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => {
+                item.classList.remove('active');
+            });
+            // 激活德州结算器菜单项
+            const settlementMenuItem = Array.from(menuItems).find(item => 
+                item.textContent.trim() === '德州结算器'
+            );
+            if (settlementMenuItem) {
+                settlementMenuItem.classList.add('active');
+            }
+            // 初始化胜率计算器的卡牌网格（备用）
             initCardGrid();
             updateProgress();
         });
