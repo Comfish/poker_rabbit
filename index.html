@@ -1081,11 +1081,11 @@
         </div>
         
         <!-- 德州结算器页面 -->
-        <div class="function-page active" id="settlementPage" style="padding: 0 8px;">
+        <div class="function-page active" id="settlementPage" style="padding: 0 5px;">
             <h1 style="text-align: center; font-size: 24px; margin: 20px 0;">德州结算器</h1>
             
             <!-- 游戏配置区域 -->
-            <div class="section" style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); width: 100%; max-width: none;">
+            <div class="section" style="background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); width: 100%; max-width: none;">
                 <h2 style="font-size: 18px; margin-bottom: 15px; color: #333;">游戏配置</h2>
                 <div class="config-form" style="display: flex; flex-direction: column; gap: 15px;">
                     <!-- 筹码和R配置行 -->
@@ -1111,7 +1111,7 @@
             </div>
             
             <!-- 玩家管理区域 -->
-            <div class="section" style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); width: 100%; max-width: none;">
+            <div class="section" style="background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); width: 100%; max-width: none;">
                 <h2 style="font-size: 18px; margin-bottom: 15px; color: #333;">玩家管理</h2>
                 
                 <!-- 玩家表头 -->
@@ -2687,10 +2687,11 @@
         // 初始化结算器
         function initSettlement() {
             loadConfig();
-            // 默认添加2个玩家
+            // 默认添加5个玩家
             if (document.querySelectorAll('.player-item').length === 0) {
-                addPlayer();
-                addPlayer();
+                for (let i = 0; i < 5; i++) {
+                    addPlayer();
+                }
             }
         }
         
@@ -2754,7 +2755,7 @@
             playerItem.className = 'player-item';
             playerItem.dataset.playerId = playerId;
             
-            // 按照原型图设计玩家项布局
+            // 优化玩家项布局，去掉灰色卡片，将"(待计算)"改为"-"
             playerItem.innerHTML = `
                 <div style="display: grid; grid-template-columns: 1fr 0.7fr 0.7fr 0.8fr; gap: 10px; align-items: center;">
                     <!-- 玩家姓名 -->
@@ -2771,8 +2772,7 @@
                     
                     <!-- 最终盈亏 -->
                     <div class="profit-display" style="padding: 10px; font-size: 14px; color: #999; text-align: center;">
-                        (待计算)
-                    </div>
+                        -</div>
                 </div>
             `;
             
