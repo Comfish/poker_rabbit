@@ -766,42 +766,171 @@
                 flex-direction: row;
             }
         }
+        
+        /* 侧拉菜单样式 */
+        /* 侧拉菜单按钮 */
+        .sidebar-toggle {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            width: 40px;
+            height: 40px;
+            background-color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 1001;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-toggle:hover {
+            background-color: #f0f0f0;
+            transform: scale(1.05);
+        }
+        
+        /* 侧拉菜单 */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -250px;
+            width: 250px;
+            height: 100vh;
+            background-color: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            transition: left 0.3s ease;
+            overflow-y: auto;
+        }
+        
+        /* 侧拉菜单打开状态 */
+        .sidebar.open {
+            left: 0;
+        }
+        
+        /* 主内容区域偏移 */
+        .container {
+            transition: margin-left 0.3s ease;
+        }
+        
+        /* 菜单头部 */
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            background-color: #f8f9fa;
+        }
+        
+        .sidebar-header h3 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 18px;
+        }
+        
+        /* 菜单项 */
+        .sidebar-menu {
+            padding: 10px 0;
+        }
+        
+        .menu-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #34495e;
+            font-size: 14px;
+        }
+        
+        .menu-item:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .menu-item.active {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+        
+        /* 功能页面容器 */
+        .function-page {
+            display: none;
+        }
+        
+        .function-page.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>德州扑克胜率计算器</h1>
+    <!-- 侧拉菜单按钮 -->
+    <div class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+        ☰
+    </div>
+    
+    <!-- 侧拉菜单容器 -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>功能列表</h3>
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-item active" onclick="switchFunction('calculator')">
+                胜率计算器
+            </div>
+            <div class="menu-item" onclick="switchFunction('settlement')">
+                德州结算器
+            </div>
+        </div>
+    </div>
+    
+    <!-- 主内容区域 -->
+    <div class="container" id="mainContent">
+        <!-- 胜率计算器页面 -->
+        <div class="function-page active" id="calculatorPage">
+            <h1>德州扑克胜率计算器</h1>
+            
+            <!-- 输入区域 -->
+            <div class="section">
+                <!-- 选牌模式切换 -->
+                <div class="selection-mode">
+                    <button class="mode-btn active" id="handModeBtn" onclick="switchMode('hand')">
+                        选择手牌 (已选 <span id="handCount">0</span>/2)
+                    </button>
+                    <button class="mode-btn" id="communityModeBtn" onclick="switchMode('community')">
+                        选择公共牌 (已选 <span id="communityCount">0</span>/5)
+                    </button>
+                </div>
+                
+                <!-- 桌面端快速操作按钮 -->
+                <div class="quick-actions">
+                    <button class="quick-btn primary" onclick="clearAllCards()">
+                        重置
+                    </button>
+                    <button class="quick-btn secondary" onclick="calculateOdds()">
+                        计算胜率
+                    </button>
+                </div>
+                
+                <!-- 玩家人数选择 - 桌面端 -->
+                <div class="opponent-selector">
+                    <label for="opponentCount">玩家人数（2-10）：</label>
+                    <input type="number" id="opponentCount" min="2" max="10" value="2">
+                </div>
+                
+                <!-- 合并的卡牌网格 -->
+                <div class="card-grid" id="cardGrid"></div>
+            </div>
+        </div>
         
-        <!-- 输入区域 -->
-        <div class="section">
-            <!-- 选牌模式切换 -->
-            <div class="selection-mode">
-                <button class="mode-btn active" id="handModeBtn" onclick="switchMode('hand')">
-                    选择手牌 (已选 <span id="handCount">0</span>/2)
-                </button>
-                <button class="mode-btn" id="communityModeBtn" onclick="switchMode('community')">
-                    选择公共牌 (已选 <span id="communityCount">0</span>/5)
-                </button>
-            </div>
+        <!-- 德州结算器页面 -->
+        <div class="function-page" id="settlementPage">
+            <h1>德州结算器</h1>
             
-            <!-- 桌面端快速操作按钮 -->
-            <div class="quick-actions">
-                <button class="quick-btn primary" onclick="clearAllCards()">
-                    重置
-                </button>
-                <button class="quick-btn secondary" onclick="calculateOdds()">
-                    计算胜率
-                </button>
+            <!-- 结算器内容区域 -->
+            <div class="section">
+                <h2>结算器功能开发中...</h2>
+                <p>这是一个空白页面，将用于实现德州扑克结算功能。</p>
             </div>
-            
-            <!-- 玩家人数选择 - 桌面端 -->
-            <div class="opponent-selector">
-                <label for="opponentCount">玩家人数（2-10）：</label>
-                <input type="number" id="opponentCount" min="2" max="10" value="2">
-            </div>
-            
-            <!-- 合并的卡牌网格 -->
-            <div class="card-grid" id="cardGrid"></div>
         </div>
     </div>
     
@@ -2270,6 +2399,46 @@
         
         // 添加触摸反馈
         document.addEventListener('touchstart', () => {}, { passive: true });
+        
+        // 侧拉菜单功能
+        // 切换侧拉菜单
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+        
+        // 切换功能页面
+        function switchFunction(funcName) {
+            // 更新菜单项激活状态
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // 激活当前菜单项
+            const activeMenuItem = Array.from(menuItems).find(item => 
+                item.textContent.trim() === (funcName === 'calculator' ? '胜率计算器' : '德州结算器')
+            );
+            if (activeMenuItem) {
+                activeMenuItem.classList.add('active');
+            }
+            
+            // 更新功能页面显示
+            const pages = document.querySelectorAll('.function-page');
+            pages.forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // 显示当前功能页面
+            const activePage = document.getElementById(`${funcName}Page`);
+            if (activePage) {
+                activePage.classList.add('active');
+            }
+            
+            // 关闭侧拉菜单
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.remove('open');
+        }
     </script>
 </body>
 </html>
