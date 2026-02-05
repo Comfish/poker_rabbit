@@ -25,7 +25,7 @@
             width: 100%;
             max-width: 1000px;
             margin: 0 auto;
-            padding: 15px;
+            padding: 8px;
         }
         
         h1 {
@@ -39,7 +39,7 @@
             background-color: white;
             border-radius: 12px;
             padding: 20px;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         
@@ -892,7 +892,7 @@
         .player-list {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 8px;
         }
         
         .player-item {
@@ -900,8 +900,6 @@
             flex-wrap: wrap;
             gap: 10px;
             align-items: center;
-            padding: 15px;
-            background-color: #f8f9fa;
             border-radius: 8px;
         }
         
@@ -1096,7 +1094,7 @@
                                    style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 120px; font-size: 14px;">
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <span style="font-size: 14px; color: #666;">等值R</span>
+                            <span style="font-size: 14px; color: #666;">R</span>
                             <input type="number" id="rmbPerBuyIn" min="10" step="10" value="500" 
                                    style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 120px; font-size: 14px;">
                         </div>
@@ -1129,13 +1127,13 @@
             </div>
             
             <!-- 底部按钮区域 -->
-            <div style="display: flex; gap: 15px; margin-bottom: 30px;">
+            <div style="display: flex; gap: 10px; margin-bottom: 30px; width: 100%; flex-wrap: wrap;">
                 <button class="quick-btn secondary reset-btn" onclick="resetSettlement()" 
-                        style="flex: 1; padding: 12px; font-size: 14px; background-color: #ff6b6b; color: white; border: none; border-radius: 6px;">重置</button>
+                        style="flex: 1; min-width: 80px; padding: 12px; font-size: 14px; background-color: #ff6b6b; color: white; border: none; border-radius: 6px;">重置</button>
                 <button class="quick-btn secondary add-player-btn" onclick="addPlayer()" 
-                        style="flex: 1; padding: 12px; font-size: 14px; background-color: #ffeaa7; color: #333; border: none; border-radius: 6px;">添加</button>
+                        style="flex: 1; min-width: 80px; padding: 12px; font-size: 14px; background-color: #ffeaa7; color: #333; border: none; border-radius: 6px;">添加</button>
                 <button class="quick-btn primary settle-btn" onclick="settle()" 
-                        style="flex: 1; padding: 12px; font-size: 14px; background-color: #6c5ce7; color: white; border: none; border-radius: 6px;">结算</button>
+                        style="flex: 1; min-width: 80px; padding: 12px; font-size: 14px; background-color: #6c5ce7; color: white; border: none; border-radius: 6px;">结算</button>
             </div>
         </div>
     </div>
@@ -2496,43 +2494,39 @@
             showToast('直接截图分享不行吗？');
         }
         
-        // Toast提示函数
-        function showToast(message) {
-            // 检查是否已存在Toast
-            let toast = document.getElementById('toast');
-            if (!toast) {
-                // 创建Toast元素
-                toast = document.createElement('div');
-                toast.id = 'toast';
-                toast.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    background-color: rgba(0, 0, 0, 0.8);
-                    color: white;
-                    padding: 12px 24px;
-                    border-radius: 25px;
-                    font-size: 14px;
-                    z-index: 9999;
-                    opacity: 0;
-                    transition: opacity 0.3s ease, transform 0.3s ease;
-                    transform: translate(-50%, -20px);
-                `;
-                document.body.appendChild(toast);
+        // 在玩家列表下方显示提示信息
+        function showResultMessage(message) {
+            // 移除旧的提示信息
+            const oldMessage = document.getElementById('resultMessage');
+            if (oldMessage) {
+                oldMessage.remove();
             }
             
-            // 设置Toast消息
-            toast.textContent = message;
+            // 创建提示信息元素
+            const messageElement = document.createElement('div');
+            messageElement.id = 'resultMessage';
+            messageElement.style.cssText = `
+                width: 100%;
+                background-color: #e3f2fd;
+                color: #2196f3;
+                padding: 12px;
+                border-radius: 6px;
+                font-size: 14px;
+                text-align: center;
+                margin-bottom: 15px;
+                font-weight: bold;
+            `;
+            messageElement.textContent = message;
             
-            // 显示Toast
-            toast.style.opacity = '1';
-            toast.style.transform = 'translate(-50%, 0)';
+            // 将提示信息添加到玩家列表下方
+            const playerList = document.getElementById('playerList');
+            playerList.parentNode.insertBefore(messageElement, playerList.nextSibling);
             
-            // 3秒后隐藏Toast
+            // 3秒后自动移除
             setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translate(-50%, -20px)';
+                if (messageElement.parentNode) {
+                    messageElement.remove();
+                }
             }, 3000);
         }
         
@@ -2757,21 +2751,21 @@
             
             // 优化玩家项布局，去掉灰色卡片，将"(待计算)"改为"-"
             playerItem.innerHTML = `
-                <div style="display: grid; grid-template-columns: 1fr 0.7fr 0.7fr 0.8fr; gap: 10px; align-items: center;">
+                <div style="display: grid; grid-template-columns: 1fr 0.6fr 0.6fr 0.8fr; gap: 10px; align-items: center; width: 100%;">
                     <!-- 玩家姓名 -->
                     <input type="text" name="playerName" placeholder="" value="玩家${playerId}" 
-                           style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                           style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; width: 100%;">
                     
                     <!-- 贷款 -->
                     <input type="number" name="playerBuyIns" min="0" value="0" 
-                           style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; text-align: center;">
+                           style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; text-align: center; width: 100%;">
                     
                     <!-- 结束筹码 -->
                     <input type="number" name="playerChips" min="0" value="0" 
-                           style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; text-align: center;">
+                           style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; text-align: center; width: 100%;">
                     
                     <!-- 最终盈亏 -->
-                    <div class="profit-display" style="padding: 10px; font-size: 14px; color: #999; text-align: center;">
+                    <div class="profit-display" style="padding: 10px; font-size: 14px; color: #999; text-align: center; white-space: nowrap;">
                         -</div>
                 </div>
             `;
@@ -2868,7 +2862,7 @@
             });
             
             // 显示总计信息
-            showToast(`结算完成，总计盈亏：${totalProfit.toFixed(2)} R`);
+            showResultMessage(`结算完成，总计盈亏：${totalProfit.toFixed(2)} R`);
         }
         
         // 重置结算器
@@ -2884,9 +2878,10 @@
             // 重置玩家ID计数器
             playerIdCounter = 1;
             
-            // 添加2个默认玩家
-            addPlayer();
-            addPlayer();
+            // 添加5个默认玩家
+            for (let i = 0; i < 5; i++) {
+                addPlayer();
+            }
         }
         
         // 复制结果到剪贴板
