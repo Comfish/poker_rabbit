@@ -1081,75 +1081,64 @@
         </div>
         
         <!-- 德州结算器页面 -->
-        <div class="function-page active" id="settlementPage">
-            <h1>德州结算器</h1>
+        <div class="function-page active" id="settlementPage" style="padding: 0 15px;">
+            <h1 style="text-align: center; font-size: 24px; margin: 20px 0;">德州结算器</h1>
             
             <!-- 游戏配置区域 -->
-            <div class="section">
-                <h2>游戏配置</h2>
+            <div class="section" style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                <h2 style="font-size: 18px; margin-bottom: 15px; color: #333;">游戏配置</h2>
                 <div class="config-form" style="display: flex; flex-direction: column; gap: 15px;">
-                    <!-- 每手筹码数 -->
-                    <div class="form-group" style="display: flex; flex-direction: column; gap: 5px;">
-                        <label for="chipsPerBuyIn">每手筹码数：</label>
-                        <input type="number" id="chipsPerBuyIn" min="100" step="100" value="2000" style="padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                    <!-- 筹码和R配置行 -->
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 14px; color: #666;">一手筹码</span>
+                            <input type="number" id="chipsPerBuyIn" min="100" step="100" value="2000" 
+                                   style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 120px; font-size: 14px;">
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 14px; color: #666;">等值R</span>
+                            <input type="number" id="rmbPerBuyIn" min="10" step="10" value="500" 
+                                   style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 120px; font-size: 14px;">
+                        </div>
                     </div>
-                    <!-- 每手R -->
-                    <div class="form-group" style="display: flex; flex-direction: column; gap: 5px;">
-                        <label for="rmbPerBuyIn">每手R (元)：</label>
-                        <input type="number" id="rmbPerBuyIn" min="10" step="10" value="500" style="padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                    
+                    <!-- 配置摘要和保存按钮 -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                        <div class="config-summary" style="padding: 8px 12px; background-color: #f8f9fa; border-radius: 6px; font-size: 14px;">
+                            当前配置：每手 <span id="configChipsDisplay">2000</span> 筹码 = <span id="configRmbDisplay">500</span> R
+                        </div>
+                        <button class="quick-btn secondary save-config-btn" onclick="saveConfig()" 
+                                style="padding: 8px 20px; font-size: 14px; background-color: #f0f0f0; color: #333; border: none; border-radius: 6px;">保存</button>
                     </div>
-                    <!-- 保存配置按钮 -->
-                    <button class="quick-btn secondary save-config-btn" onclick="saveConfig()" style="padding: 12px; font-size: 14px;">保存配置</button>
-                </div>
-                <!-- 配置摘要 -->
-                <div class="config-summary" style="margin-top: 15px; padding: 10px; background-color: #e8f8e8; border-radius: 6px; font-size: 14px;">
-                    <strong>当前配置：</strong>每手 <span id="configChipsDisplay">2000</span> 筹码 = <span id="configRmbDisplay">500</span> R
                 </div>
             </div>
             
             <!-- 玩家管理区域 -->
-            <div class="section">
-                <div class="section-header">
-                    <h2>玩家管理</h2>
-                    <button class="quick-btn secondary add-player-btn" onclick="addPlayer()" style="padding: 8px 16px; font-size: 14px;">添加玩家</button>
+            <div class="section" style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                <h2 style="font-size: 18px; margin-bottom: 15px; color: #333;">玩家管理</h2>
+                
+                <!-- 玩家表头 -->
+                <div style="display: grid; grid-template-columns: 1fr 0.7fr 0.7fr 0.8fr; gap: 10px; margin-bottom: 10px; font-weight: bold; font-size: 14px; color: #666;">
+                    <div>玩家</div>
+                    <div>贷款</div>
+                    <div>结束筹码</div>
+                    <div>最终盈亏</div>
                 </div>
-                <div id="playerList" class="player-list">
+                
+                <!-- 玩家列表 -->
+                <div id="playerList" class="player-list" style="display: flex; flex-direction: column; gap: 10px;">
                     <!-- 动态生成玩家项 -->
                 </div>
             </div>
             
-            <!-- 结算操作区域 -->
-            <div class="section" style="margin-top: 15px;">
-                <div class="settlement-actions" style="display: flex; gap: 10px; flex-direction: column;">
-                    <button class="quick-btn primary settle-btn" onclick="settle()" style="padding: 16px; font-size: 18px; font-weight: bold;">结算</button>
-                    <button class="quick-btn secondary reset-btn" onclick="resetSettlement()" style="padding: 12px; font-size: 14px; opacity: 0.7;">重置</button>
-                </div>
-            </div>
-            
-            <!-- 结算结果区域 -->
-            <div class="section" id="resultSection" style="display: none;">
-                <h2>结算结果</h2>
-                <div class="result-info">
-                    <p>总计：<span id="totalProfit">0</span> 元</p>
-                </div>
-                <div class="result-table-container">
-                    <table id="resultTable" class="result-table">
-                        <thead>
-                            <tr>
-                                <th>姓名</th>
-                                <th>买入次数</th>
-                                <th>剩余筹码</th>
-                                <th>最终盈亏 (元)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- 动态生成结果行 -->
-                        </tbody>
-                    </table>
-                </div>
-                <div class="result-actions">
-                    <button class="quick-btn secondary copy-result-btn" onclick="copyResult()">复制结果</button>
-                </div>
+            <!-- 底部按钮区域 -->
+            <div style="display: flex; gap: 15px; margin-bottom: 30px;">
+                <button class="quick-btn secondary reset-btn" onclick="resetSettlement()" 
+                        style="flex: 1; padding: 12px; font-size: 14px; background-color: #ff6b6b; color: white; border: none; border-radius: 6px;">重置</button>
+                <button class="quick-btn secondary add-player-btn" onclick="addPlayer()" 
+                        style="flex: 1; padding: 12px; font-size: 14px; background-color: #ffeaa7; color: #333; border: none; border-radius: 6px;">添加</button>
+                <button class="quick-btn primary settle-btn" onclick="settle()" 
+                        style="flex: 1; padding: 12px; font-size: 14px; background-color: #6c5ce7; color: white; border: none; border-radius: 6px;">结算</button>
             </div>
         </div>
     </div>
@@ -2772,33 +2761,24 @@
             playerItem.className = 'player-item';
             playerItem.dataset.playerId = playerId;
             
-            // 优化玩家项布局，明确配置内容，确保移动端适配
+            // 按照原型图设计玩家项布局
             playerItem.innerHTML = `
-                <div style="display: flex; flex-direction: column; gap: 10px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+                <div style="display: grid; grid-template-columns: 1fr 0.7fr 0.7fr 0.8fr; gap: 10px; align-items: center;">
                     <!-- 玩家姓名 -->
-                    <div style="display: flex; flex-direction: column;">
-                        <label style="font-size: 12px; color: #666; margin-bottom: 2px;">玩家姓名</label>
-                        <input type="text" name="playerName" value="玩家${playerId}" style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; width: 100%;">
-                    </div>
+                    <input type="text" name="playerName" placeholder="" value="玩家${playerId}" 
+                           style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
                     
-                    <!-- 贷款和结束筹码 -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <!-- 贷款 -->
-                        <div style="display: flex; flex-direction: column;">
-                            <label style="font-size: 12px; color: #666; margin-bottom: 2px;">贷款（买入次数）</label>
-                            <input type="number" name="playerBuyIns" min="0" value="0" style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; text-align: center;">
-                        </div>
-                        
-                        <!-- 结束筹码 -->
-                        <div style="display: flex; flex-direction: column;">
-                            <label style="font-size: 12px; color: #666; margin-bottom: 2px;">结束筹码</label>
-                            <input type="number" name="playerChips" min="0" value="0" style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; text-align: center;">
-                        </div>
-                    </div>
+                    <!-- 贷款 -->
+                    <input type="number" name="playerBuyIns" min="0" value="0" 
+                           style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; text-align: center;">
                     
-                    <!-- 删除按钮 -->
-                    <div style="display: flex; justify-content: flex-end;">
-                        <button class="remove-player-btn" onclick="removePlayer(${playerId})" style="padding: 8px 16px; border: none; border-radius: 6px; background-color: #e74c3c; color: white; font-size: 14px; cursor: pointer;">删除</button>
+                    <!-- 结束筹码 -->
+                    <input type="number" name="playerChips" min="0" value="0" 
+                           style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; text-align: center;">
+                    
+                    <!-- 最终盈亏 -->
+                    <div class="profit-display" style="padding: 10px; font-size: 14px; color: #999; text-align: center;">
+                        (待计算)
                     </div>
                 </div>
             `;
@@ -2861,69 +2841,41 @@
                 return;
             }
             
-            // 获取所有玩家数据
-            const players = getAllPlayers();
+            // 获取所有玩家元素
+            const playerItems = document.querySelectorAll('.player-item');
             
-            // 验证玩家数据
-            if (players.length < 2) {
+            // 验证玩家数量
+            if (playerItems.length < 2) {
                 alert('请至少添加2个玩家');
                 return;
             }
             
-            // 计算每位玩家盈亏
-            const results = [];
+            // 计算每位玩家盈亏并直接显示在玩家列表中
             let totalProfit = 0;
             
-            players.forEach(player => {
-                const profit = calculatePlayerProfit(player, config);
-                results.push({
-                    player: player,
-                    profit: profit
-                });
+            playerItems.forEach(item => {
+                // 获取玩家数据
+                const name = item.querySelector('input[name="playerName"]').value.trim();
+                const buyIns = parseInt(item.querySelector('input[name="playerBuyIns"]').value) || 0;
+                const remainingChips = parseInt(item.querySelector('input[name="playerChips"]').value) || 0;
+                
+                // 计算盈亏
+                const profit = calculatePlayerProfit({name, buyIns, remainingChips}, config);
                 totalProfit += profit;
+                
+                // 更新盈亏显示
+                const profitDisplay = item.querySelector('.profit-display');
+                const formattedProfit = profit.toFixed(2);
+                const profitClass = profit > 0 ? 'profit-positive' : 
+                                  profit < 0 ? 'profit-negative' : 'profit-zero';
+                
+                profitDisplay.textContent = formattedProfit + ' R';
+                profitDisplay.className = `profit-display ${profitClass}`;
+                profitDisplay.style.fontWeight = 'bold';
             });
             
-            // 显示结果
-            displayResults(results, totalProfit);
-        }
-        
-        // 显示结算结果
-        function displayResults(results, totalProfit) {
-            const resultTableBody = document.getElementById('resultTable').querySelector('tbody');
-            const totalProfitElement = document.getElementById('totalProfit');
-            const resultSection = document.getElementById('resultSection');
-            
-            // 清空表格
-            resultTableBody.innerHTML = '';
-            
-            // 生成结果行
-            results.forEach(result => {
-                const row = document.createElement('tr');
-                const profitClass = result.profit > 0 ? 'profit-positive' : 
-                                  result.profit < 0 ? 'profit-negative' : 'profit-zero';
-                const formattedProfit = result.profit.toFixed(2);
-                
-                row.innerHTML = `
-                    <td>${result.player.name}</td>
-                    <td>${result.player.buyIns}</td>
-                    <td>${result.player.remainingChips}</td>
-                    <td class="${profitClass}">${formattedProfit}</td>
-                `;
-                
-                resultTableBody.appendChild(row);
-            });
-            
-            // 更新总计
-            totalProfitElement.textContent = totalProfit.toFixed(2);
-            // 设置总计样式
-            if (Math.abs(totalProfit) < 0.01) {
-                totalProfitElement.className = 'profit-zero';
-            } else {
-                totalProfitElement.className = totalProfit > 0 ? 'profit-positive' : 'profit-negative';
-            }
-            
-            // 显示结果区域
-            resultSection.style.display = 'block';
+            // 显示总计信息
+            showToast(`结算完成，总计盈亏：${totalProfit.toFixed(2)} R`);
         }
         
         // 重置结算器
