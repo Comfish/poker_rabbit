@@ -986,7 +986,13 @@
             }
             
             .form-group {
-                justify-content: space-between;
+                flex-direction: column;
+                align-items: stretch;
+                justify-content: flex-start;
+            }
+            
+            .form-group input {
+                width: 100%;
             }
             
             .player-item {
@@ -996,6 +1002,20 @@
             
             .player-item input {
                 width: 100%;
+            }
+            
+            /* 结果表格 */
+            .result-table {
+                font-size: 12px;
+            }
+            
+            .result-table th, .result-table td {
+                padding: 8px 6px;
+            }
+            
+            /* 结算按钮 */
+            .settlement-actions {
+                flex-direction: column;
             }
         }
     </style>
@@ -1067,16 +1087,19 @@
             <!-- 游戏配置区域 -->
             <div class="section">
                 <h2>游戏配置</h2>
-                <div class="config-form" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: center;">
-                    <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                <div class="config-form" style="display: flex; flex-direction: column; gap: 15px;">
+                    <!-- 每手筹码数 -->
+                    <div class="form-group" style="display: flex; flex-direction: column; gap: 5px;">
                         <label for="chipsPerBuyIn">每手筹码数：</label>
-                        <input type="number" id="chipsPerBuyIn" min="100" step="100" value="2000" style="flex: 1;">
+                        <input type="number" id="chipsPerBuyIn" min="100" step="100" value="2000" style="padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
                     </div>
-                    <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                    <!-- 每手R -->
+                    <div class="form-group" style="display: flex; flex-direction: column; gap: 5px;">
                         <label for="rmbPerBuyIn">每手R (元)：</label>
-                        <input type="number" id="rmbPerBuyIn" min="10" step="10" value="500" style="flex: 1;">
+                        <input type="number" id="rmbPerBuyIn" min="10" step="10" value="500" style="padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
                     </div>
-                    <button class="quick-btn secondary save-config-btn" onclick="saveConfig()">保存配置</button>
+                    <!-- 保存配置按钮 -->
+                    <button class="quick-btn secondary save-config-btn" onclick="saveConfig()" style="padding: 12px; font-size: 14px;">保存配置</button>
                 </div>
                 <!-- 配置摘要 -->
                 <div class="config-summary" style="margin-top: 15px; padding: 10px; background-color: #e8f8e8; border-radius: 6px; font-size: 14px;">
@@ -1096,10 +1119,10 @@
             </div>
             
             <!-- 结算操作区域 -->
-            <div class="section" style="margin-top: -10px;">
-                <div class="settlement-actions" style="gap: 10px;">
-                    <button class="quick-btn primary settle-btn" onclick="settle()" style="flex: 2; padding: 12px 24px; font-size: 16px; font-weight: bold;">结算</button>
-                    <button class="quick-btn secondary reset-btn" onclick="resetSettlement()" style="flex: 1; padding: 8px 16px; font-size: 14px; opacity: 0.7;">重置</button>
+            <div class="section" style="margin-top: 15px;">
+                <div class="settlement-actions" style="display: flex; gap: 10px; flex-direction: column;">
+                    <button class="quick-btn primary settle-btn" onclick="settle()" style="padding: 16px; font-size: 18px; font-weight: bold;">结算</button>
+                    <button class="quick-btn secondary reset-btn" onclick="resetSettlement()" style="padding: 12px; font-size: 14px; opacity: 0.7;">重置</button>
                 </div>
             </div>
             
@@ -2749,22 +2772,34 @@
             playerItem.className = 'player-item';
             playerItem.dataset.playerId = playerId;
             
-            // 优化玩家项布局，明确配置内容
+            // 优化玩家项布局，明确配置内容，确保移动端适配
             playerItem.innerHTML = `
-                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: center; width: 100%;">
+                <div style="display: flex; flex-direction: column; gap: 10px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+                    <!-- 玩家姓名 -->
                     <div style="display: flex; flex-direction: column;">
                         <label style="font-size: 12px; color: #666; margin-bottom: 2px;">玩家姓名</label>
-                        <input type="text" name="playerName" value="玩家${playerId}" style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                        <input type="text" name="playerName" value="玩家${playerId}" style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; width: 100%;">
                     </div>
-                    <div style="display: flex; flex-direction: column;">
-                        <label style="font-size: 12px; color: #666; margin-bottom: 2px;">贷款（买入次数）</label>
-                        <input type="number" name="playerBuyIns" min="0" value="0" style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; text-align: center;">
+                    
+                    <!-- 贷款和结束筹码 -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <!-- 贷款 -->
+                        <div style="display: flex; flex-direction: column;">
+                            <label style="font-size: 12px; color: #666; margin-bottom: 2px;">贷款（买入次数）</label>
+                            <input type="number" name="playerBuyIns" min="0" value="0" style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; text-align: center;">
+                        </div>
+                        
+                        <!-- 结束筹码 -->
+                        <div style="display: flex; flex-direction: column;">
+                            <label style="font-size: 12px; color: #666; margin-bottom: 2px;">结束筹码</label>
+                            <input type="number" name="playerChips" min="0" value="0" style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; text-align: center;">
+                        </div>
                     </div>
-                    <div style="display: flex; flex-direction: column;">
-                        <label style="font-size: 12px; color: #666; margin-bottom: 2px;">结束筹码</label>
-                        <input type="number" name="playerChips" min="0" value="0" style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; text-align: center;">
+                    
+                    <!-- 删除按钮 -->
+                    <div style="display: flex; justify-content: flex-end;">
+                        <button class="remove-player-btn" onclick="removePlayer(${playerId})" style="padding: 8px 16px; border: none; border-radius: 6px; background-color: #e74c3c; color: white; font-size: 14px; cursor: pointer;">删除</button>
                     </div>
-                    <button class="remove-player-btn" onclick="removePlayer(${playerId})" style="padding: 10px 16px; border: none; border-radius: 6px; background-color: #e74c3c; color: white; font-size: 14px; cursor: pointer; align-self: flex-end;">删除</button>
                 </div>
             `;
             
