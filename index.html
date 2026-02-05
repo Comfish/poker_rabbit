@@ -860,6 +860,144 @@
         .function-page.active {
             display: block;
         }
+        
+        /* 结算器专用样式 */
+        .config-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .form-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-group input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            width: 120px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .player-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .player-item {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .player-item input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100px;
+        }
+        
+        .player-item input[name="playerName"] {
+            width: 150px;
+        }
+        
+        .remove-player-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            background-color: #e74c3c;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .settlement-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .result-table th, .result-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .result-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        
+        .profit-positive {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .profit-negative {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .profit-zero {
+            color: #95a5a6;
+        }
+        
+        .result-info {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e3f2fd;
+            border-radius: 8px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .result-actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .config-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .form-group {
+                justify-content: space-between;
+            }
+            
+            .player-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .player-item input {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -926,10 +1064,69 @@
         <div class="function-page" id="settlementPage">
             <h1>德州结算器</h1>
             
-            <!-- 结算器内容区域 -->
+            <!-- 游戏配置区域 -->
             <div class="section">
-                <h2>结算器功能开发中...</h2>
-                <p>这是一个空白页面，将用于实现德州扑克结算功能。</p>
+                <h2>游戏配置</h2>
+                <div class="config-form" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: center;">
+                    <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                        <label for="chipsPerBuyIn">每手筹码数：</label>
+                        <input type="number" id="chipsPerBuyIn" min="100" step="100" value="2000" style="flex: 1;">
+                    </div>
+                    <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                        <label for="rmbPerBuyIn">每手人民币 (元)：</label>
+                        <input type="number" id="rmbPerBuyIn" min="10" step="10" value="500" style="flex: 1;">
+                    </div>
+                    <button class="quick-btn secondary save-config-btn" onclick="saveConfig()">保存配置</button>
+                </div>
+                <!-- 配置摘要 -->
+                <div class="config-summary" style="margin-top: 15px; padding: 10px; background-color: #e8f8e8; border-radius: 6px; font-size: 14px;">
+                    <strong>当前配置：</strong>每手 <span id="configChipsDisplay">2000</span> 筹码 = <span id="configRmbDisplay">500</span> 元
+                </div>
+            </div>
+            
+            <!-- 玩家管理区域 -->
+            <div class="section">
+                <div class="section-header">
+                    <h2>玩家管理</h2>
+                    <button class="quick-btn secondary add-player-btn" onclick="addPlayer()">添加玩家</button>
+                </div>
+                <div id="playerList" class="player-list">
+                    <!-- 动态生成玩家项 -->
+                </div>
+            </div>
+            
+            <!-- 结算操作区域 -->
+            <div class="section" style="margin-top: -10px;">
+                <div class="settlement-actions">
+                    <button class="quick-btn primary settle-btn" onclick="settle()">结算</button>
+                    <button class="quick-btn secondary reset-btn" onclick="resetSettlement()">重置</button>
+                </div>
+            </div>
+            
+            <!-- 结算结果区域 -->
+            <div class="section" id="resultSection" style="display: none;">
+                <h2>结算结果</h2>
+                <div class="result-info">
+                    <p>总计：<span id="totalProfit">0</span> 元</p>
+                </div>
+                <div class="result-table-container">
+                    <table id="resultTable" class="result-table">
+                        <thead>
+                            <tr>
+                                <th>姓名</th>
+                                <th>买入次数</th>
+                                <th>剩余筹码</th>
+                                <th>最终盈亏 (元)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- 动态生成结果行 -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="result-actions">
+                    <button class="quick-btn secondary copy-result-btn" onclick="copyResult()">复制结果</button>
+                </div>
             </div>
         </div>
     </div>
@@ -2433,11 +2630,295 @@
             const activePage = document.getElementById(`${funcName}Page`);
             if (activePage) {
                 activePage.classList.add('active');
+                // 如果切换到结算器页面，初始化结算器
+                if (funcName === 'settlement') {
+                    initSettlement();
+                    // 隐藏底部操作栏
+                    document.querySelector('.bottom-action-bar').style.display = 'none';
+                } else {
+                    // 显示底部操作栏（胜率计算器页面）
+                    const isMobile = window.innerWidth <= 768;
+                    document.querySelector('.bottom-action-bar').style.display = isMobile ? 'flex' : 'none';
+                }
             }
             
             // 关闭侧拉菜单
             const sidebar = document.getElementById('sidebar');
             sidebar.classList.remove('open');
+        }
+        
+        // 德州结算器功能
+        // 游戏配置对象
+        const GameConfig = {
+            chipsPerBuyIn: 2000,
+            rmbPerBuyIn: 500,
+            playerCount: 0
+        };
+        
+        // 玩家ID计数器
+        let playerIdCounter = 1;
+        
+        // 初始化结算器
+        function initSettlement() {
+            loadConfig();
+            // 默认添加2个玩家
+            if (document.querySelectorAll('.player-item').length === 0) {
+                addPlayer();
+                addPlayer();
+            }
+        }
+        
+        // 更新配置摘要
+        function updateConfigSummary() {
+            const chipsPerBuyIn = parseInt(document.getElementById('chipsPerBuyIn').value) || 2000;
+            const rmbPerBuyIn = parseInt(document.getElementById('rmbPerBuyIn').value) || 500;
+            
+            document.getElementById('configChipsDisplay').textContent = chipsPerBuyIn;
+            document.getElementById('configRmbDisplay').textContent = rmbPerBuyIn;
+        }
+        
+        // 保存游戏配置
+        function saveConfig() {
+            const chipsPerBuyIn = parseInt(document.getElementById('chipsPerBuyIn').value);
+            const rmbPerBuyIn = parseInt(document.getElementById('rmbPerBuyIn').value);
+            
+            // 验证输入
+            if (isNaN(chipsPerBuyIn) || chipsPerBuyIn < 100) {
+                alert('请输入有效的每手筹码数（至少100）');
+                return;
+            }
+            if (isNaN(rmbPerBuyIn) || rmbPerBuyIn < 10) {
+                alert('请输入有效的每手人民币（至少10）');
+                return;
+            }
+            
+            // 更新配置
+            GameConfig.chipsPerBuyIn = chipsPerBuyIn;
+            GameConfig.rmbPerBuyIn = rmbPerBuyIn;
+            
+            // 保存到LocalStorage
+            localStorage.setItem('pokerSettlementConfig', JSON.stringify(GameConfig));
+            
+            // 更新配置摘要
+            updateConfigSummary();
+            
+            showToast('配置已保存');
+        }
+        
+        // 加载游戏配置
+        function loadConfig() {
+            const savedConfig = localStorage.getItem('pokerSettlementConfig');
+            if (savedConfig) {
+                const config = JSON.parse(savedConfig);
+                GameConfig.chipsPerBuyIn = config.chipsPerBuyIn || 2000;
+                GameConfig.rmbPerBuyIn = config.rmbPerBuyIn || 500;
+                
+                // 更新DOM
+                document.getElementById('chipsPerBuyIn').value = GameConfig.chipsPerBuyIn;
+                document.getElementById('rmbPerBuyIn').value = GameConfig.rmbPerBuyIn;
+            }
+            
+            // 更新配置摘要
+            updateConfigSummary();
+        }
+        
+        // 添加玩家
+        function addPlayer() {
+            const playerList = document.getElementById('playerList');
+            const playerId = playerIdCounter++;
+            
+            // 创建玩家元素
+            const playerItem = document.createElement('div');
+            playerItem.className = 'player-item';
+            playerItem.dataset.playerId = playerId;
+            
+            // 优化玩家项布局
+            playerItem.innerHTML = `
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: center; width: 100%;">
+                    <input type="text" name="playerName" placeholder="玩家姓名" value="玩家${playerId}" style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                    <input type="number" name="playerBuyIns" placeholder="买入次数" min="0" value="0" style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; text-align: center;">
+                    <input type="number" name="playerChips" placeholder="剩余筹码" min="0" value="0" style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; text-align: center;">
+                    <button class="remove-player-btn" onclick="removePlayer(${playerId})" style="padding: 10px 16px; border: none; border-radius: 6px; background-color: #e74c3c; color: white; font-size: 14px; cursor: pointer;">删除</button>
+                </div>
+            `;
+            
+            playerList.appendChild(playerItem);
+        }
+        
+        // 删除玩家
+        function removePlayer(playerId) {
+            const playerItem = document.querySelector(`.player-item[data-player-id="${playerId}"]`);
+            if (playerItem) {
+                playerItem.remove();
+            }
+        }
+        
+        // 获取所有玩家数据
+        function getAllPlayers() {
+            const playerItems = document.querySelectorAll('.player-item');
+            const players = [];
+            
+            playerItems.forEach(item => {
+                const name = item.querySelector('input[name="playerName"]').value.trim();
+                const buyIns = parseInt(item.querySelector('input[name="playerBuyIns"]').value) || 0;
+                const remainingChips = parseInt(item.querySelector('input[name="playerChips"]').value) || 0;
+                
+                if (name) {
+                    players.push({
+                        name: name,
+                        buyIns: buyIns,
+                        remainingChips: remainingChips
+                    });
+                }
+            });
+            
+            return players;
+        }
+        
+        // 计算单个玩家盈亏
+        function calculatePlayerProfit(player, config) {
+            // 使用公式：((remainingChips / chipsPerBuyIn) - buyIns - 1) * rmbPerBuyIn
+            const chipsPerBuyIn = config.chipsPerBuyIn;
+            const rmbPerBuyIn = config.rmbPerBuyIn;
+            const buyIns = player.buyIns;
+            const remainingChips = player.remainingChips;
+            
+            return ((remainingChips / chipsPerBuyIn) - buyIns - 1) * rmbPerBuyIn;
+        }
+        
+        // 执行结算
+        function settle() {
+            // 获取游戏配置
+            const config = {
+                chipsPerBuyIn: parseInt(document.getElementById('chipsPerBuyIn').value),
+                rmbPerBuyIn: parseInt(document.getElementById('rmbPerBuyIn').value)
+            };
+            
+            // 验证配置
+            if (isNaN(config.chipsPerBuyIn) || isNaN(config.rmbPerBuyIn)) {
+                alert('请先配置游戏参数');
+                return;
+            }
+            
+            // 获取所有玩家数据
+            const players = getAllPlayers();
+            
+            // 验证玩家数据
+            if (players.length < 2) {
+                alert('请至少添加2个玩家');
+                return;
+            }
+            
+            // 计算每位玩家盈亏
+            const results = [];
+            let totalProfit = 0;
+            
+            players.forEach(player => {
+                const profit = calculatePlayerProfit(player, config);
+                results.push({
+                    player: player,
+                    profit: profit
+                });
+                totalProfit += profit;
+            });
+            
+            // 显示结果
+            displayResults(results, totalProfit);
+        }
+        
+        // 显示结算结果
+        function displayResults(results, totalProfit) {
+            const resultTableBody = document.getElementById('resultTable').querySelector('tbody');
+            const totalProfitElement = document.getElementById('totalProfit');
+            const resultSection = document.getElementById('resultSection');
+            
+            // 清空表格
+            resultTableBody.innerHTML = '';
+            
+            // 生成结果行
+            results.forEach(result => {
+                const row = document.createElement('tr');
+                const profitClass = result.profit > 0 ? 'profit-positive' : 
+                                  result.profit < 0 ? 'profit-negative' : 'profit-zero';
+                const formattedProfit = result.profit.toFixed(2);
+                
+                row.innerHTML = `
+                    <td>${result.player.name}</td>
+                    <td>${result.player.buyIns}</td>
+                    <td>${result.player.remainingChips}</td>
+                    <td class="${profitClass}">${formattedProfit}</td>
+                `;
+                
+                resultTableBody.appendChild(row);
+            });
+            
+            // 更新总计
+            totalProfitElement.textContent = totalProfit.toFixed(2);
+            // 设置总计样式
+            if (Math.abs(totalProfit) < 0.01) {
+                totalProfitElement.className = 'profit-zero';
+            } else {
+                totalProfitElement.className = totalProfit > 0 ? 'profit-positive' : 'profit-negative';
+            }
+            
+            // 显示结果区域
+            resultSection.style.display = 'block';
+        }
+        
+        // 重置结算器
+        function resetSettlement() {
+            // 清空玩家列表
+            const playerList = document.getElementById('playerList');
+            playerList.innerHTML = '';
+            
+            // 隐藏结果区域
+            const resultSection = document.getElementById('resultSection');
+            resultSection.style.display = 'none';
+            
+            // 重置玩家ID计数器
+            playerIdCounter = 1;
+            
+            // 添加2个默认玩家
+            addPlayer();
+            addPlayer();
+        }
+        
+        // 复制结果到剪贴板
+        function copyResult() {
+            const table = document.getElementById('resultTable');
+            let resultText = '德州扑克结算结果\n\n';
+            
+            // 添加表头
+            const headers = table.querySelectorAll('th');
+            headers.forEach(header => {
+                resultText += header.textContent + '\t';
+            });
+            resultText += '\n';
+            
+            // 添加分隔线
+            resultText += '-----------------------------\n';
+            
+            // 添加数据行
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                cells.forEach(cell => {
+                    resultText += cell.textContent + '\t';
+                });
+                resultText += '\n';
+            });
+            
+            // 添加总计
+            const totalProfit = document.getElementById('totalProfit').textContent;
+            resultText += '\n总计：' + totalProfit + ' 元\n';
+            
+            // 复制到剪贴板
+            navigator.clipboard.writeText(resultText).then(() => {
+                showToast('结果已复制到剪贴板');
+            }).catch(err => {
+                console.error('复制失败：', err);
+                alert('复制失败，请手动复制');
+            });
         }
     </script>
 </body>
