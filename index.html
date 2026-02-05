@@ -1081,11 +1081,11 @@
         </div>
         
         <!-- 德州结算器页面 -->
-        <div class="function-page active" id="settlementPage" style="padding: 0 15px;">
+        <div class="function-page active" id="settlementPage" style="padding: 0 8px;">
             <h1 style="text-align: center; font-size: 24px; margin: 20px 0;">德州结算器</h1>
             
             <!-- 游戏配置区域 -->
-            <div class="section" style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+            <div class="section" style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); width: 100%; max-width: none;">
                 <h2 style="font-size: 18px; margin-bottom: 15px; color: #333;">游戏配置</h2>
                 <div class="config-form" style="display: flex; flex-direction: column; gap: 15px;">
                     <!-- 筹码和R配置行 -->
@@ -1102,11 +1102,8 @@
                         </div>
                     </div>
                     
-                    <!-- 配置摘要和保存按钮 -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-                        <div class="config-summary" style="padding: 8px 12px; background-color: #f8f9fa; border-radius: 6px; font-size: 14px;">
-                            当前配置：每手 <span id="configChipsDisplay">2000</span> 筹码 = <span id="configRmbDisplay">500</span> R
-                        </div>
+                    <!-- 保存按钮 -->
+                    <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
                         <button class="quick-btn secondary save-config-btn" onclick="saveConfig()" 
                                 style="padding: 8px 20px; font-size: 14px; background-color: #f0f0f0; color: #333; border: none; border-radius: 6px;">保存</button>
                     </div>
@@ -1114,7 +1111,7 @@
             </div>
             
             <!-- 玩家管理区域 -->
-            <div class="section" style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+            <div class="section" style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); width: 100%; max-width: none;">
                 <h2 style="font-size: 18px; margin-bottom: 15px; color: #333;">玩家管理</h2>
                 
                 <!-- 玩家表头 -->
@@ -2697,13 +2694,9 @@
             }
         }
         
-        // 更新配置摘要
+        // 更新配置摘要 - 已移除显示元素，保留函数名以避免错误
         function updateConfigSummary() {
-            const chipsPerBuyIn = parseInt(document.getElementById('chipsPerBuyIn').value) || 2000;
-            const rmbPerBuyIn = parseInt(document.getElementById('rmbPerBuyIn').value) || 500;
-            
-            document.getElementById('configChipsDisplay').textContent = chipsPerBuyIn;
-            document.getElementById('configRmbDisplay').textContent = rmbPerBuyIn;
+            // 配置摘要元素已删除，不再更新显示
         }
         
         // 保存游戏配置
