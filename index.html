@@ -2917,8 +2917,9 @@
         
         // 更新汇总显示
         function updateSummary() {
+            const summaryContent = document.getElementById('summaryContent');
+            
             if (gameHistory.length === 0) {
-                const summaryContent = document.getElementById('summaryContent');
                 summaryContent.innerHTML = `
                     <div style="text-align: center; color: #999; padding: 20px;">
                         暂无场次数据
@@ -2978,7 +2979,6 @@
             `;
             
             // 更新汇总结果
-            const summaryContent = document.getElementById('summaryContent');
             summaryContent.innerHTML = summaryHTML;
         }
         
@@ -3054,17 +3054,23 @@
         
         // 重置结算器
         function resetSettlement() {
-            // 隐藏结果区域
+            // 立即获取所有需要操作的DOM元素
             const resultSection = document.getElementById('resultSection');
-            resultSection.style.display = 'none';
-            
-            // 隐藏历史场次区域
             const historySection = document.getElementById('historySection');
-            historySection.style.display = 'none';
-            
-            // 清空历史场次内容
             const historyContent = document.getElementById('historyContent');
+            const summaryContent = document.getElementById('summaryContent');
+            
+            // 隐藏并清空所有相关区域
+            resultSection.style.display = 'none';
+            historySection.style.display = 'none';
             historyContent.innerHTML = '';
+            
+            // 立即清空汇总内容
+            summaryContent.innerHTML = `
+                <div style="text-align: center; color: #999; padding: 20px;">
+                    暂无场次数据
+                </div>
+            `;
             
             // 获取所有玩家项
             const playerItems = document.querySelectorAll('.player-item');
@@ -3098,7 +3104,7 @@
             gameHistory = [];
             localStorage.removeItem('pokerGameHistory');
             
-            // 更新汇总显示
+            // 再次调用updateSummary确保状态一致
             updateSummary();
         }
         
