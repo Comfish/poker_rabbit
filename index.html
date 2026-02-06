@@ -3058,6 +3058,14 @@
             const resultSection = document.getElementById('resultSection');
             resultSection.style.display = 'none';
             
+            // 隐藏历史场次区域
+            const historySection = document.getElementById('historySection');
+            historySection.style.display = 'none';
+            
+            // 清空历史场次内容
+            const historyContent = document.getElementById('historyContent');
+            historyContent.innerHTML = '';
+            
             // 获取所有玩家项
             const playerItems = document.querySelectorAll('.player-item');
             
@@ -3070,9 +3078,9 @@
             
             // 清空所有玩家的填写内容
             const playerInputs = document.querySelectorAll('.player-item input');
-            playerInputs.forEach(input => {
+            playerInputs.forEach((input, index) => {
                 if (input.name === 'playerName') {
-                    input.value = `玩家${playerInputs.indexOf(input) / 3 + 1}`;
+                    input.value = `玩家${Math.floor(index / 3) + 1}`;
                 } else {
                     input.value = '0';
                 }
