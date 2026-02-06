@@ -3054,21 +3054,37 @@
         
         // 重置结算器
         function resetSettlement() {
-            // 清空玩家列表
-            const playerList = document.getElementById('playerList');
-            playerList.innerHTML = '';
-            
             // 隐藏结果区域
             const resultSection = document.getElementById('resultSection');
             resultSection.style.display = 'none';
             
-            // 重置玩家ID计数器
-            playerIdCounter = 1;
+            // 获取所有玩家项
+            const playerItems = document.querySelectorAll('.player-item');
             
-            // 添加5个默认玩家
-            for (let i = 0; i < 5; i++) {
-                addPlayer();
+            // 如果玩家数量不足5个，添加到5个
+            if (playerItems.length < 5) {
+                for (let i = playerItems.length; i < 5; i++) {
+                    addPlayer();
+                }
             }
+            
+            // 清空所有玩家的填写内容
+            const playerInputs = document.querySelectorAll('.player-item input');
+            playerInputs.forEach(input => {
+                if (input.name === 'playerName') {
+                    input.value = `玩家${playerInputs.indexOf(input) / 3 + 1}`;
+                } else {
+                    input.value = '0';
+                }
+            });
+            
+            // 清空盈亏显示
+            const profitDisplays = document.querySelectorAll('.profit-display');
+            profitDisplays.forEach(display => {
+                display.textContent = '-';
+                display.className = 'profit-display';
+                display.style.fontWeight = 'normal';
+            });
             
             // 清空游戏历史记录
             gameHistory = [];
