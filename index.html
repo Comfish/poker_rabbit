@@ -3083,13 +3083,11 @@
         // 重置结算器
         function resetSettlement() {
             // 立即获取所有需要操作的DOM元素
-            const resultSection = document.getElementById('resultSection');
             const historySection = document.getElementById('historySection');
             const historyContent = document.getElementById('historyContent');
             const summaryContent = document.getElementById('summaryContent');
             
             // 隐藏并清空所有相关区域
-            resultSection.style.display = 'none';
             historySection.style.display = 'none';
             historyContent.innerHTML = '';
             
