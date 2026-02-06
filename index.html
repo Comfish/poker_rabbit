@@ -1111,18 +1111,8 @@
                 </div>
             </div>
             
-            <!-- 场次管理按钮区域 -->
-            <div style="display: flex; gap: 10px; margin-bottom: 15px; width: 100%; flex-wrap: wrap;">
-                <button class="quick-btn secondary" onclick="saveCurrentGame()" 
-                        style="flex: 1; min-width: 80px; padding: 10px; font-size: 13px; background-color: #2ecc71; color: white; border: none; border-radius: 6px;">保存当前场次</button>
-                <button class="quick-btn secondary" onclick="showSummary()" 
-                        style="flex: 1; min-width: 80px; padding: 10px; font-size: 13px; background-color: #3498db; color: white; border: none; border-radius: 6px;">查看汇总</button>
-                <button class="quick-btn secondary" onclick="clearGameHistory()" 
-                        style="flex: 1; min-width: 80px; padding: 10px; font-size: 13px; background-color: #e74c3c; color: white; border: none; border-radius: 6px;">清除历史</button>
-            </div>
-            
             <!-- 底部按钮区域 -->
-            <div style="display: flex; gap: 10px; margin-bottom: 30px; width: 100%; flex-wrap: wrap;">
+            <div style="display: flex; gap: 10px; margin-bottom: 15px; width: 100%; flex-wrap: wrap;">
                 <button class="quick-btn secondary reset-btn" onclick="resetSettlement()" 
                         style="flex: 1; min-width: 80px; padding: 12px; font-size: 14px; background-color: #ff6b6b; color: white; border: none; border-radius: 6px;">重置</button>
                 <button class="quick-btn secondary add-player-btn" onclick="addPlayer()" 
@@ -1131,8 +1121,20 @@
                         style="flex: 1; min-width: 80px; padding: 12px; font-size: 14px; background-color: #6c5ce7; color: white; border: none; border-radius: 6px;">结算</button>
             </div>
             
+            <!-- 查看历史场次按钮 -->
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; width: 100%;">
+                <button class="quick-btn secondary" onclick="toggleHistoryView()" 
+                        style="flex: 1; padding: 10px; font-size: 14px; background-color: #95a5a6; color: white; border: none; border-radius: 6px;">查看历史场次</button>
+            </div>
+            
+            <!-- 历史场次显示区域 -->
+            <div id="historySection" style="display: none; background-color: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <h2 style="font-size: 18px; margin-bottom: 15px; color: #333;">历史场次记录</h2>
+                <div id="historyContent"></div>
+            </div>
+            
             <!-- 汇总结果显示区域 -->
-            <div id="summarySection" style="display: none; background-color: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <div id="summarySection" style="background-color: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                 <h2 style="font-size: 18px; margin-bottom: 15px; color: #333;">多场次汇总结果</h2>
                 <div id="summaryContent"></div>
             </div>
@@ -2685,6 +2687,8 @@
                     addPlayer();
                 }
             }
+            // 更新汇总显示
+            updateSummary();
         }
         
         // 更新配置摘要 - 已移除显示元素，保留函数名以避免错误
@@ -2859,6 +2863,12 @@
                 profitDisplay.style.fontWeight = 'bold';
             });
             
+            // 保存当前场次
+            saveCurrentGame();
+            
+            // 更新汇总显示
+            updateSummary();
+            
             // 显示总计信息
             showResultMessage(`结算完成，总计盈亏：${totalProfit.toFixed(2)} R`);
         }
@@ -2903,14 +2913,17 @@
             
             // 保存到localStorage
             localStorage.setItem('pokerGameHistory', JSON.stringify(gameHistory));
-            
-            showResultMessage(`场次已保存，当前共 ${gameHistory.length} 场`);
         }
         
-        // 显示多场次汇总结果
-        function showSummary() {
+        // 更新汇总显示
+        function updateSummary() {
             if (gameHistory.length === 0) {
-                alert('暂无历史场次数据');
+                const summaryContent = document.getElementById('summaryContent');
+                summaryContent.innerHTML = `
+                    <div style="text-align: center; color: #999; padding: 20px;">
+                        暂无场次数据
+                    </div>
+                `;
                 return;
             }
             
@@ -2962,38 +2975,80 @@
             summaryHTML += `
                     </tbody>
                 </table>
-                
-                <div style="display: flex; justify-content: center;">
-                    <button class="quick-btn secondary" onclick="hideSummary()" 
-                            style="padding: 10px 20px; font-size: 14px; background-color: #95a5a6; color: white; border: none; border-radius: 6px;">关闭</button>
-                </div>
             `;
             
-            // 显示汇总结果
+            // 更新汇总结果
             const summaryContent = document.getElementById('summaryContent');
-            const summarySection = document.getElementById('summarySection');
             summaryContent.innerHTML = summaryHTML;
-            summarySection.style.display = 'block';
         }
         
-        // 隐藏汇总结果
-        function hideSummary() {
-            const summarySection = document.getElementById('summarySection');
-            summarySection.style.display = 'none';
-        }
-        
-        // 清除游戏历史记录
-        function clearGameHistory() {
-            if (gameHistory.length === 0) {
-                alert('暂无历史场次数据');
-                return;
-            }
+        // 切换历史场次显示/隐藏
+        function toggleHistoryView() {
+            const historySection = document.getElementById('historySection');
+            const historyContent = document.getElementById('historyContent');
             
-            if (confirm('确定要清除所有历史场次数据吗？此操作不可恢复。')) {
-                gameHistory = [];
-                localStorage.removeItem('pokerGameHistory');
-                showResultMessage('历史记录已清除');
-                hideSummary();
+            if (historySection.style.display === 'none' || historySection.style.display === '') {
+                // 显示历史场次
+                if (gameHistory.length === 0) {
+                    historyContent.innerHTML = `
+                        <div style="text-align: center; color: #999; padding: 20px;">
+                            暂无历史场次数据
+                        </div>
+                    `;
+                } else {
+                    // 生成历史场次HTML
+                    let historyHTML = '<div style="display: flex; flex-direction: column; gap: 15px;">';
+                    
+                    // 按时间倒序显示
+                    const sortedHistory = [...gameHistory].sort((a, b) => b.id - a.id);
+                    
+                    sortedHistory.forEach((game, index) => {
+                        historyHTML += `
+                            <div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; background-color: #fafafa;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <h4 style="font-size: 14px; font-weight: bold; color: #333; margin: 0;">场次 ${sortedHistory.length - index}</h4>
+                                    <span style="font-size: 12px; color: #666;">${game.time}</span>
+                                </div>
+                                <div style="font-size: 13px; color: #666; margin-bottom: 10px;">
+                                    游戏配置：${game.config.chipsPerBuyIn}筹码 = ${game.config.rmbPerBuyIn}R
+                                </div>
+                                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                                    <thead>
+                                        <tr style="background-color: #f0f0f0;">
+                                            <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">玩家</th>
+                                            <th style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">盈亏 (R)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                        `;
+                        
+                        game.players.forEach(player => {
+                            const formattedProfit = player.profit.toFixed(2);
+                            const profitClass = player.profit > 0 ? 'profit-positive' : 
+                                              player.profit < 0 ? 'profit-negative' : 'profit-zero';
+                            historyHTML += `
+                                <tr>
+                                    <td style="padding: 8px; border-bottom: 1px solid #eee;">${player.name}</td>
+                                    <td style="padding: 8px; text-align: right; border-bottom: 1px solid #eee; font-weight: bold;" class="${profitClass}">${formattedProfit} R</td>
+                                </tr>
+                            `;
+                        });
+                        
+                        historyHTML += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+                    });
+                    
+                    historyHTML += '</div>';
+                    historyContent.innerHTML = historyHTML;
+                }
+                
+                historySection.style.display = 'block';
+            } else {
+                // 隐藏历史场次
+                historySection.style.display = 'none';
             }
         }
         
@@ -3014,6 +3069,13 @@
             for (let i = 0; i < 5; i++) {
                 addPlayer();
             }
+            
+            // 清空游戏历史记录
+            gameHistory = [];
+            localStorage.removeItem('pokerGameHistory');
+            
+            // 更新汇总显示
+            updateSummary();
         }
         
         // 复制结果到剪贴板
