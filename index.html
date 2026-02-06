@@ -1121,10 +1121,12 @@
                         style="flex: 1; min-width: 80px; padding: 12px; font-size: 14px; background-color: #6c5ce7; color: white; border: none; border-radius: 6px;">结算</button>
             </div>
             
-            <!-- 查看历史场次按钮 -->
-            <div style="display: flex; gap: 10px; margin-bottom: 20px; width: 100%;">
+            <!-- 操作按钮区域 -->
+            <div style="display: flex; gap: 10px; margin-bottom: 20px; width: 100%; flex-wrap: wrap;">
                 <button class="quick-btn secondary" onclick="toggleHistoryView()" 
-                        style="flex: 1; padding: 10px; font-size: 14px; background-color: #95a5a6; color: white; border: none; border-radius: 6px;">查看历史场次</button>
+                        style="flex: 1; min-width: 120px; padding: 10px; font-size: 14px; background-color: #95a5a6; color: white; border: none; border-radius: 6px;">查看历史场次</button>
+                <button class="quick-btn secondary" onclick="clearAllData()" 
+                        style="flex: 1; min-width: 120px; padding: 10px; font-size: 14px; background-color: #e74c3c; color: white; border: none; border-radius: 6px;">清除所有数据</button>
             </div>
             
             <!-- 历史场次显示区域 -->
@@ -3049,6 +3051,32 @@
             } else {
                 // 隐藏历史场次
                 historySection.style.display = 'none';
+            }
+        }
+        
+        // 清除所有数据
+        function clearAllData() {
+            if (confirm('确定要清除所有数据吗？此操作不可恢复。')) {
+                // 清除本地存储的所有数据
+                localStorage.removeItem('pokerSettlementConfig');
+                localStorage.removeItem('pokerGameHistory');
+                
+                // 重置游戏历史数组
+                gameHistory = [];
+                
+                // 重置游戏配置
+                GameConfig.chipsPerBuyIn = 2000;
+                GameConfig.rmbPerBuyIn = 500;
+                
+                // 更新配置输入框
+                document.getElementById('chipsPerBuyIn').value = GameConfig.chipsPerBuyIn;
+                document.getElementById('rmbPerBuyIn').value = GameConfig.rmbPerBuyIn;
+                
+                // 重置玩家列表和内容
+                resetSettlement();
+                
+                // 显示提示
+                showResultMessage('所有数据已清除');
             }
         }
         
